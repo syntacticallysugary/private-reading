@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/e2e/ tests/performance/ tests/test_systemd_integration.py -q --tb=short)",
+      "Bash(python -m pytest tests/e2e/ tests/performance/ -q --tb=long)",
+      "Bash(python -c \"import sys; sys.path.insert\\(0, '/home/jimbob/Dev/myaudible'\\); import myaudible.core.file_watcher\")",
+      "Bash(python -m pytest tests/core/test_file_watcher.py -q --collect-only)",
+      "Bash(python -c \"import sys; [print\\(p\\) for p in sys.path if 'myaudible' in p or p == '']\")",
+      "Bash(python -c \"import sys; print\\('\\\\n'.join\\(sys.path\\)\\)\")",
+      "Bash(PYTHONPATH=/home/jimbob/Dev/myaudible python -c \"import core.file_watcher; print\\('ok'\\)\")",
+      "Bash(python -m pytest tests/e2e/ -q --tb=short)",
+      "Bash(python -c ' *)",
+      "Read(//home/jimbob/Dev/network-mcp/docker/sandbox/**)"
+    ]
+  }
+}

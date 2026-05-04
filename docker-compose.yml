@@ -1,0 +1,20 @@
+services:
+  myaudible:
+    build: .
+    image: myaudible:latest
+
+    # Stay up across reboots; only stop with `docker compose stop` or `docker compose down`
+    restart: unless-stopped
+
+    volumes:
+      # Drop files into ./input on the host → inotify fires inside the container
+      # Pick up results from ./output on the host
+      - ./input:/input
+      - ./output:/output
+
+    env_file:
+      - path: .env
+        required: false  # missing .env is fine; defaults are baked into config
+
+    environment:
+      - PYTHONUNBUFFERED=1

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment
+.env
+
+# Project runtime dirs
+input/
+output/
+htmlcov/
+.coverage
+
+# Test artifacts
+test_output_creation
+test_output_writability
+test_results*.txt
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.md.wav

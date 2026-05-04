@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "myaudible"
+version = "0.1.0"
+description = "AI-powered data pipeline that converts text documents into high-quality audio files using Qwen 3.0 TTS model"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  {name = "myAudible Team", email = "team@myaudible.example.com"}
+]
+keywords = ["tts", "audio", "text-to-speech", "qwen", "pipeline"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Multimedia :: Sound/Audio",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+  "aiohttp>=3.9",
+  "pdfplumber>=0.11",
+  "python-docx>=1.1",
+  "semchunk>=0.1.0",
+  "ffmpeg-python>=0.2",
+  "scipy>=1.11",
+  "pydantic-settings>=2.1",
+  "structlog>=23",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+  "pytest-asyncio>=0.21",
+  "pytest-cov>=4.1",
+  "black>=23.0",
+  "ruff>=0.1",
+  "mypy>=1.0",
+]
+
+[project.scripts]
+myaudible = "myaudible.main:main"
+
+[project.entry-points."console_scripts"]
+myaudible = "myaudible.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+include = "\\.pyi?$"
+
+[tool.isort]
+line_length = 100
+profile = "black"
+known_first_party = ["myaudible"]
+
+[tool.flake8]
+max-line-length = 100
+ignore = ["E203", "W503"]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests/core", "tests/e2e", "tests/performance"]
+pythonpath = ["."]
+addopts = "-v --cov=myaudible --cov-report=term-missing"
