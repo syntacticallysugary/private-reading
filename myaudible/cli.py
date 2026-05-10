@@ -21,7 +21,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  python -m myaudible -i document.md -o ./output\n"
             "  python -m myaudible -i ./documents -o ./output -w\n"
-            "  python -m myaudible -i document.md -o ./output -v --voice echo\n"
+            "  python -m myaudible -i document.md -o ./output -v --reference-id my-voice\n"
         ),
     )
 
@@ -31,7 +31,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
 
     optional = parser.add_argument_group("optional arguments")
     optional.add_argument("-c", "--config", default=None, help="Path to configuration file")
-    optional.add_argument("--voice", default=None, help="Voice ID for TTS")
+    optional.add_argument("--reference-id", default=None, dest="reference_id", help="Pre-registered Fish TTS voice reference ID")
     optional.add_argument("--chunk-size", type=int, default=None, help="Override max chunk size in characters")
     optional.add_argument("--overlap-ratio", type=float, default=None, help="Override overlap ratio (0.0-1.0)")
     optional.add_argument("--semaphore-size", type=int, default=None, help="Override semaphore size for concurrency control (1-50)")
@@ -90,14 +90,12 @@ def build_config(args: argparse.Namespace) -> AppConfig:
         input_dir=input_path if input_path.is_dir() else input_path.parent,
         output_dir=output_path,
         processed_dir=output_path / "processed",
-        tts=TTSConfig(voice_design=args.voice or ""),
+        tts=TTSConfig(reference_id=args.reference_id) if args.reference_id else TTSConfig(),
         processing=ProcessingConfig(
-            chunk_size=args.chunk_size if args.chunk_size is not None else MAX_CHUNK,
-            overlap_ratio=args.overlap_ratio if args.overlap_ratio is not None else 0.1,
+            **({} if args.chunk_size is None else {"chunk_size": args.chunk_size}),
+            **({} if args.overlap_ratio is None else {"overlap_ratio": args.overlap_ratio}),
         ),
-        semaphore=SemaphoreConfig(
-            size=args.semaphore_size if args.semaphore_size is not None else 10,
-        ),
+        semaphore=SemaphoreConfig() if args.semaphore_size is None else SemaphoreConfig(size=args.semaphore_size),
         logging=LoggingConfig(
             level="DEBUG" if args.verbose else "INFO",
         ),

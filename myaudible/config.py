@@ -32,10 +32,13 @@ class SemaphoreConfig(BaseSettings):
 
 
 class TTSConfig(BaseSettings):
-    """TTS API configuration."""
+    """Fish TTS API configuration."""
 
-    endpoint: str = "http://192.168.1.104:8008/v1/audio/speech"
-    voice_design: str = ""
+    endpoint: str = "http://192.168.1.104:8013/v1/tts"
+    reference_id: str = ""
+    temperature: float = 0.8
+    top_p: float = 0.8
+    repetition_penalty: float = 1.1
     retry_attempts: int = 3
     base_backoff_ms: int = 1000
 

@@ -1,7 +1,7 @@
 """TTS API client for myAudible.
 
 This module provides the TTSClient class for interfacing with the
-Qwen 3.0 TTS API for audio generation.
+Fish TTS API for audio generation.
 """
 
 from __future__ import annotations
@@ -12,20 +12,10 @@ from typing import Dict, Optional
 
 from aiohttp import ClientSession
 from myaudible.exceptions import TTSAPIError
-from myaudible.models import VoiceConfig
-
-
-
-class TTSConfig:
-    """TTS API configuration."""
-
-    endpoint: str = "http://192.168.1.104:8008/v1/audio/speech"
-    retry_attempts: int = 3
-    timeout_seconds: int = 600
 
 
 class TTSClient:
-    """Interface with Qwen 3.0 TTS API for audio generation.
+    """Interface with Fish TTS API for audio generation.
 
     This class provides async HTTP client functionality with retry logic
     and exponential backoff for failed requests.
@@ -34,19 +24,18 @@ class TTSClient:
     def __init__(
         self,
         endpoint: str,
-        voice: str = "",
+        reference_id: str = "",
+        temperature: float = 0.8,
+        top_p: float = 0.8,
+        repetition_penalty: float = 1.1,
         retry_attempts: int = 3,
         timeout_seconds: int = 600,
     ):
-        """Initialize TTSClient.
-
-        Args:
-            endpoint: TTS API URL.
-            retry_attempts: Maximum retry attempts (default: 3).
-            timeout_seconds: Request timeout in seconds.
-        """
         self.endpoint = endpoint
-        self.voice_design = voice
+        self.reference_id = reference_id
+        self.temperature = temperature
+        self.top_p = top_p
+        self.repetition_penalty = repetition_penalty
         self.retry_attempts = retry_attempts
         self.timeout_seconds = timeout_seconds
         self._session: Optional[object] = None
@@ -57,25 +46,17 @@ class TTSClient:
             self._session = ClientSession()
         return self
 
-
-
-    
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         """Async context manager exit."""
         if self._session is not None:
             await self._session.close()
             self._session = None
 
-    async def generate_speech(
-        self,
-        text: str,
-        voice_config: Optional[VoiceConfig] = None,
-    ) -> bytes:
+    async def generate_speech(self, text: str) -> bytes:
         """Generate speech from text with retry logic.
 
         Args:
             text: Text to convert to speech.
-            voice_config: Optional voice configuration.
 
         Returns:
             Audio data as bytes.
@@ -93,7 +74,7 @@ class TTSClient:
             attempts += 1
 
             try:
-                return await self._do_generate(text, voice_config=voice_config)
+                return await self._do_generate(text)
 
             except TTSAPIError as e:
                 last_error = e
@@ -107,32 +88,24 @@ class TTSClient:
 
         raise last_error or TTSAPIError("Unexpected error occurred")
 
-    async def _do_generate(
-        self,
-        text: str,
-        voice_config: Optional[VoiceConfig] = None,
-    ) -> bytes:
-        """Perform one TTS HTTP request and return raw WAV bytes."""
+    async def _do_generate(self, text: str) -> bytes:
+        """Perform one TTS HTTP request and return raw audio bytes."""
         if self._session is None:
             raise TTSAPIError("Session not initialized")
 
         import aiohttp
 
         payload: Dict = {
-            "input": text,
-            "model": "qwen",
-            "response_format": "wav",
+            "text": text,
+            "format": "wav",
+            "references": [],
+            "streaming": False,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "repetition_penalty": self.repetition_penalty,
         }
-        if self.voice_design:
-            payload["voice_design"] = self.voice_design
-
-        if voice_config:
-            if voice_config.ref_audio:
-                payload["ref_audio"] = voice_config.ref_audio
-            if voice_config.ref_text:
-                payload["ref_text"] = voice_config.ref_text
-            if voice_config.voice_design:
-                payload["voice_design"] = voice_config.voice_design
+        if self.reference_id:
+            payload["reference_id"] = self.reference_id
 
         try:
             async with self._session.post(
@@ -159,20 +132,12 @@ class TTSClient:
             msg = str(e) or type(e).__name__
             raise TTSAPIError(f"Network error: {msg}", {"status": 0})
 
-
     async def _handle_retry(
         self,
         attempt: int,
         status: int,
         retry_after: Optional[int] = None,
     ) -> None:
-        """Handle retryable errors.
-
-        Args:
-            attempt: Current attempt number.
-            status: HTTP status code.
-            retry_after: Optional retry-after value from server.
-        """
         if status == 429:
             delay = retry_after or self._calculate_backoff(attempt)
             await asyncio.sleep(delay)
@@ -180,19 +145,9 @@ class TTSClient:
             delay = self._calculate_backoff(attempt)
             await asyncio.sleep(delay)
         else:
-            # Unexpected status code - raise error
             raise TTSAPIError(f"Unexpected status code: {status}")
 
-
     def _calculate_backoff(self, attempt: int) -> float:
-        """Calculate exponential backoff with jitter.
-
-        Args:
-            attempt: Current attempt number.
-
-        Returns:
-            Backoff delay in seconds.
-        """
         base = (2 ** int(attempt)) * 1.0
         jitter = random.uniform(0, 0.5)
         return base + jitter

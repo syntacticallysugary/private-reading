@@ -26,7 +26,7 @@
 
 ### 1.1 Purpose
 
-The myAudible system is an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using the Qwen 3.0 TTS model. The system operates as a systemd-managed service that monitors input directories and processes files asynchronously.
+The myAudible system is an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using a self-hosted Fish TTS server. The system operates as a Docker-managed service that monitors input directories and processes files asynchronously.
 
 ### 1.2 Scope
 
@@ -75,7 +75,7 @@ The myAudible system is an AI-powered data pipeline that converts text documents
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         EXTERNAL SERVICES                            │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │  Qwen 3.0 TTS API: http://192.168.1.104:8008/v1/audio/speech│   │
+│  │  Fish TTS API: http://192.168.1.104:8013/v1/tts             │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -278,84 +278,39 @@ class ChunkManager:
 
 ### 3.4 TTSClient Component
 
-**Responsibility**: Interface with Qwen 3.0 TTS API for audio generation.
+**Responsibility**: Interface with Fish TTS API for audio generation.
 
 **Class**: `TTSClient`
 
 **Key Methods**:
-- `generate_speech(text: str, voice_config: VoiceConfig) -> bytes`: Generate audio
-- `retry_with_backoff(func, max_retries: int)`: Retry failed requests
+- `generate_speech(text: str) -> bytes`: Generate audio with retry logic
+- `_do_generate(text: str) -> bytes`: Single HTTP request to Fish TTS
 
 **Configuration**:
-- `TTS_ENDPOINT`: API URL (default: `http://192.168.1.104:8008/v1/audio/speech`)
-- `RETRY_ATTEMPTS`: Maximum retry attempts (default: 3)
-- `BASE_BACKOFF_MS`: Base backoff time in milliseconds (default: 1000)
+- `TTS_ENDPOINT`: API URL (default: `http://192.168.1.104:8013/v1/tts`)
+- `TTS_REFERENCE_ID`: Pre-registered voice reference ID (blank = server default)
+- `TTS_TEMPERATURE`: Generation temperature (default: 0.8)
+- `TTS_TOP_P`: Top-p sampling (default: 0.8)
+- `TTS_REPETITION_PENALTY`: Repetition penalty (default: 1.1)
+- `TTS_RETRY_ATTEMPTS`: Maximum retry attempts (default: 3)
+
+**Voice Consistency**: Fish TTS uses reference audio for voice cloning rather than a
+text prompt. Pre-register a reference via `POST /v1/references/add` and set the
+returned ID in `TTS_REFERENCE_ID`. An empty `reference_id` uses the server default.
 
 **Implementation Details**:
 ```python
-import aiohttp
-import asyncio
-
-class TTSClient:
-    def __init__(self, endpoint: str, retry_attempts: int = 3):
-        self.endpoint = endpoint
-        self.retry_attempts = retry_attempts
-        self.session = None
-    
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
-        return self
-    
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.close()
-    
-    async def generate_speech(
-        self, 
-        text: str, 
-        voice_config: Optional[VoiceConfig] = None
-    ) -> bytes:
-        """Generate speech from text with retry logic."""
-        for attempt in range(self.retry_attempts):
-            try:
-                payload = {
-                    'input': text,
-                    'model': 'qwen-3.0-tts',
-                    'voice': voice_config.dict() if voice_config else None
-                }
-                
-                async with self.session.post(
-                    self.endpoint,
-                    json=payload,
-                    headers={'Content-Type': 'application/json'}
-                ) as response:
-                    if response.status == 200:
-                        return await response.read()
-                    elif response.status in [429, 500, 502, 503, 504]:
-                        await self._handle_retry(attempt, response.status)
-                    else:
-                        raise TTSAPIError(f"API error: {response.status}")
-                        
-            except Exception as e:
-                if attempt == self.retry_attempts - 1:
-                    raise
-                await asyncio.sleep(self._calculate_backoff(attempt))
-        
-        raise TTSAPIError("Max retries exceeded")
-    
-    async def _handle_retry(self, attempt: int, status: int, retry_after: Optional[int] = None):
-        """Handle retryable errors."""
-        if status == 429:
-            await asyncio.sleep(retry_after or 1)
-        else:
-            await asyncio.sleep(self._calculate_backoff(attempt))
-    
-    def _calculate_backoff(self, attempt: int) -> float:
-        """Calculate exponential backoff with jitter."""
-        import random
-        base = 1000  # 1 second
-        exponential = base * (2 ** attempt)
-        jitter = random.uniform(0, 0.5) * exponential
-        return (exponential + jitter) / 1000
+payload = {
+    "text": text,
+    "format": "wav",
+    "references": [],        # inline reference bytes (unused — we use reference_id)
+    "streaming": False,
+    "temperature": self.temperature,
+    "top_p": self.top_p,
+    "repetition_penalty": self.repetition_penalty,
+}
+if self.reference_id:
+    payload["reference_id"] = self.reference_id
 ```
 
 ### 3.5 AudioStitcher Component
@@ -622,42 +577,40 @@ class ProcessingMetadata:
 
 ## API Specifications
 
-### 5.1 Qwen 3.0 TTS API
+### 5.1 Fish TTS API
 
-**Endpoint**: `http://192.168.1.104:8008/v1/audio/speech`
+**Endpoint**: `POST http://192.168.1.104:8013/v1/tts`
 
 **Request Format**:
 ```json
 {
-    "input": "Text to convert to speech",
-    "model": "qwen-3.0-tts",
-    "voice": {
-        "ref_audio": "base64_encoded_audio",
-        "ref_text": "optional_reference_text",
-        "voice_design": "Deep, raspy male voice"
-    }
+    "text": "Text to convert to speech",
+    "format": "wav",
+    "references": [],
+    "streaming": false,
+    "temperature": 0.8,
+    "top_p": 0.8,
+    "repetition_penalty": 1.1,
+    "reference_id": "optional-pre-registered-voice-id"
 }
 ```
 
-**Response Format**:
-```json
-{
-    "audio": "base64_encoded_wav_data",
-    "duration_seconds": 5.2,
-    "model": "qwen-3.0-tts"
-}
-```
+Notes:
+- `references` — inline reference audio bytes for one-shot voice cloning (unused; we use `reference_id`)
+- `reference_id` — ID of a pre-registered reference voice; omit for server default
+- `streaming` — set `false` to receive the complete WAV in one response body
 
-**Error Responses**:
-```json
-{
-    "error": {
-        "code": "RATE_LIMITED",
-        "message": "Too many requests",
-        "retry_after": 60
-    }
-}
+**Response**: Raw WAV audio bytes (not JSON-wrapped). The response body is the audio file.
+
+**Error Responses**: Standard HTTP status codes with plain-text or JSON body.
+
+**Voice Registration** (one-time setup for consistent voice):
 ```
+POST /v1/references/add
+Body: multipart form with audio file
+Response: { "reference_id": "abc123" }
+```
+Set the returned `reference_id` in `TTS_REFERENCE_ID` in `.env`.
 
 ### 5.2 Internal API (Optional Web Interface)
 
@@ -782,14 +735,17 @@ from pydantic import Field
 from typing import Optional, List
 
 class TTSConfig(BaseSettings):
-    """TTS API configuration."""
+    """Fish TTS API configuration."""
     endpoint: str = Field(
-        default="http://192.168.1.104:8008/v1/audio/speech",
-        description="Qwen 3.0 TTS API endpoint"
+        default="http://192.168.1.104:8013/v1/tts",
+        description="Fish TTS API endpoint"
     )
-    model: str = Field(default="qwen-3.0-tts", description="TTS model name")
+    reference_id: str = Field(default="", description="Pre-registered voice reference ID")
+    temperature: float = Field(default=0.8, description="Generation temperature")
+    top_p: float = Field(default=0.8, description="Top-p sampling")
+    repetition_penalty: float = Field(default=1.1, description="Repetition penalty")
     retry_attempts: int = Field(default=3, ge=1, description="Max retry attempts")
-    timeout_seconds: int = Field(default=60, ge=1, description="API timeout")
+    base_backoff_ms: int = Field(default=1000, ge=0, description="Base backoff in ms")
 
 class ProcessingConfig(BaseSettings):
     """Processing pipeline configuration."""
@@ -826,17 +782,17 @@ class AppConfig(BaseSettings):
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MYAUDIBLE_TTS_ENDPOINT` | TTS API URL | `http://192.168.1.104:8008/v1/audio/speech` |
-| `MYAUDIBLE_PROCESSING_INPUT_DIR` | Input directory path | `/input` |
-| `MYAUDIBLE_PROCESSING_OUTPUT_DIR` | Output directory path | `/output` |
-| `MYAUDIBLE_PROCESSING_PROCESSED_DIR` | Processed files directory | `/processed` |
-| `MYAUDIBLE_PROCESSING_CHUNK_MAX_CHARS` | Max chars per chunk | `500` |
-| `MYAUDIBLE_PROCESSING_CHUNK_OVERLAP_RATIO` | Chunk overlap ratio | `0.1` |
-| `MYAUDIBLE_PROCESSING_MAX_PARALLEL_JOBS` | Max concurrent jobs | `2` |
-| `MYAUDIBLE_PROCESSING_ADD_SILENCE_BETWEEN` | Add silence between chunks | `true` |
-| `MYAUDIBLE_PROCESSING_SILENCE_DURATION_MS` | Silence duration | `500` |
-| `MYAUDIBLE_LOGGING_LEVEL` | Log level | `INFO` |
-| `MYAUDIBLE_LOGGING_FORMAT` | Log format | `json` |
+| `TTS_ENDPOINT` | Fish TTS API URL | `http://192.168.1.104:8013/v1/tts` |
+| `TTS_REFERENCE_ID` | Pre-registered voice reference ID | *(blank — server default)* |
+| `TTS_TEMPERATURE` | Generation temperature | `0.8` |
+| `TTS_TOP_P` | Top-p sampling | `0.8` |
+| `TTS_REPETITION_PENALTY` | Repetition penalty | `1.1` |
+| `TTS_RETRY_ATTEMPTS` | Max retry attempts | `3` |
+| `PROCESSING_CHUNK_SIZE` | Max chars per chunk | `800` |
+| `PROCESSING_OVERLAP_RATIO` | Chunk overlap ratio | `0.0` |
+| `SEMAPHORE_SIZE` | Max concurrent TTS requests | `1` |
+| `LOG_LEVEL` | Log level | `INFO` |
+| `LOG_FORMAT` | Log format | `json` |
 
 ---
 
@@ -1211,7 +1167,7 @@ class TestChunkManager:
 
 ### B. References
 
-- [Qwen 3.0 TTS API Documentation](http://192.168.1.104:8008/docs)
+- [Fish TTS API Documentation](http://192.168.1.104:8013/docs)
 - [semchunk Library](https://github.com/example/semchunk)
 - [pdfplumber Documentation](https://pdfplumber.readthedocs.io/)
 - [python-docx Documentation](https://python-docx.readthedocs.io/)

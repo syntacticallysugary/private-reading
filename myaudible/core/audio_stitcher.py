@@ -76,6 +76,7 @@ class AudioStitcher:
                 "-f", "concat",
                 "-safe", "0",
                 "-i", str(list_file),
+                "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
                 "-ar", "24000",
                 "-ac", "1",
                 "-c:a", "pcm_s16le",

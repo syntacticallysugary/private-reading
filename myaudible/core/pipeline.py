@@ -142,7 +142,10 @@ class ProcessingPipeline:
         )
         self.tts_client = TTSClient(
             endpoint=config.tts.endpoint,
-            voice=config.tts.voice_design,
+            reference_id=config.tts.reference_id,
+            temperature=config.tts.temperature,
+            top_p=config.tts.top_p,
+            repetition_penalty=config.tts.repetition_penalty,
             retry_attempts=config.tts.retry_attempts,
         )
         self.audio_stitcher = AudioStitcher(
@@ -156,6 +159,19 @@ class ProcessingPipeline:
         # JobTracker will be instantiated in Task 3.2
         # For now, we store a placeholder that will be replaced
         self.job_tracker = None  # type: Optional[Any]
+
+    @staticmethod
+    def _fix_wav_header(data: bytes) -> bytes:
+        """Fix streaming WAV headers where RIFF/data sizes are 0xFFFFFFFF."""
+        import struct
+        if len(data) < 44 or data[:4] != b'RIFF':
+            return data
+        if struct.unpack_from('<I', data, 4)[0] != 0xFFFFFFFF:
+            return data
+        data = bytearray(data)
+        struct.pack_into('<I', data, 4, len(data) - 8)
+        struct.pack_into('<I', data, 40, len(data) - 44)
+        return bytes(data)
 
     async def _retry_with_backoff(
         self, func: callable, *args, max_retries: int = 3, backoff_base: float = 1.0, **kwargs
@@ -284,7 +300,7 @@ class ProcessingPipeline:
                             audio_data = await self.tts_client.generate_speech(chunk)
                         chunk_duration = time.time() - chunk_start
                         wav_path = temp_wav_dir / f"{file_path.stem}_{index:04d}.wav"
-                        wav_path.write_bytes(audio_data)
+                        wav_path.write_bytes(self._fix_wav_header(audio_data))
                         self._logger.info(
                             "pipeline.chunk_complete",
                             file=str(file_path),

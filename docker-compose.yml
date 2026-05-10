@@ -2,6 +2,7 @@ services:
   myaudible:
     build: .
     image: myaudible:latest
+    container_name: myaudible
 
     # Stay up across reboots; only stop with `docker compose stop` or `docker compose down`
     restart: unless-stopped
