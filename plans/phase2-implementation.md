@@ -58,7 +58,7 @@ Implement:
 - `_calculate_backoff()` - Exponential backoff with jitter
 
 **Key behaviors:**
-- Endpoint: `http://192.168.1.104:8008/v1/audio/speech`
+- Endpoint: `http://<your-tts-host>:8008/v1/audio/speech`
 - Max retries: 3 attempts
 - Backoff: 2^attempt * 1000ms with jitter
 - Request body: JSON with text, voice_config

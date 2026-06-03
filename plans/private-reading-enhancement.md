@@ -15,7 +15,7 @@ graph TD
     OCIFunctions -->|Read/Write State| StateStore[OCI Autonomous JSON Database]
 
     LocalWorker[k3s Cluster: Worker Pod] -->|4. Long-Poll Pending Jobs| Gateway
-    LocalWorker -->|5. Claim & Process Job| LocalTTS[DGX Spark Node: Fish TTS Pod — night window only]
+    LocalWorker -->|5. Claim & Process Job| LocalTTS[GPU Worker Node: Fish TTS Pod — night window only]
     LocalWorker -->|6. Upload WAV File| AudioBucket[OCI Object Storage: Audiobooks]
     LocalWorker -->|7. Complete Job State| Gateway
 
@@ -55,7 +55,7 @@ Rather than exposing the home server via VPN tunnels, reverse SSH, or open ports
 
 - **Authentication**: Worker-facing API routes use **OCI request signing** as their authorizer — separate from the Cognito JWT authorizer on user-facing routes. OCI request signing uses the same RSA key pair already registered in the OCI console for CLI/SDK access, so no new credentials are needed.
 - The worker is a new `worker/` module in the `myaudible` repo — a new entry point that drives the existing `private_reading` pipeline (`pipeline.py` → `chunk_manager.py` → `tts_client.py` → `audio_stitcher.py`) with no changes to the pipeline code itself.
-- The worker runs **24/7** as a K8s Deployment (replica=1). It references the TTS server at `fish-tts.default.svc.cluster.local:8013` — a standard K8s `ClusterIP` Service backed by the Fish TTS Deployment on the DGX Spark node. No LAN IPs are hard-coded anywhere.
+- The worker runs **24/7** as a K8s Deployment (replica=1). It references the TTS server at `fish-tts.default.svc.cluster.local:8013` — a standard K8s `ClusterIP` Service backed by the Fish TTS Deployment on the GPU worker node. No LAN IPs are hard-coded anywhere.
 - When a job is available, the worker:
   1. Claims the job via `POST /worker/jobs/{job_id}/claim`.
   2. Passes the job text into the existing pipeline.
@@ -176,17 +176,17 @@ Secrets required (stored in Gitea/GitHub repository secrets):
 
 | Node | Role | Hardware |
 |------|------|----------|
-| A8 | Control plane + worker | Existing server, already running Gitea |
-| i5 | Worker node | Headless Linux server, lid-down, always on |
-| DGX Spark | Worker node (GPU) | NVIDIA DGX Spark — GPU workloads only |
+| control-plane | Control plane + worker | Existing server, already running Gitea |
+| worker-1 | Worker node | Headless Linux server, lid-down, always on |
+| GPU worker | Worker node (GPU) | NVIDIA GPU worker — GPU workloads only |
 
-The worker pod has no GPU requirement and schedules freely on the A8 or i5. The DGX Spark is tainted so only GPU-requesting pods (coder, Fish TTS) schedule there. k3s is used in place of full Kubernetes — identical API and tooling, significantly lower resource overhead, appropriate for a three-node home cluster.
+The worker pod has no GPU requirement and schedules freely on the control-plane or worker-1. The GPU worker is tainted so only GPU-requesting pods (coder, Fish TTS) schedule there. k3s is used in place of full Kubernetes — identical API and tooling, significantly lower resource overhead, appropriate for a three-node home cluster.
 
-**Cluster bootstrap is in scope.** Standing up the k3s cluster (installing k3s on the A8, joining the i5 and DGX Spark as worker nodes, installing the NVIDIA device plugin DaemonSet on the GPU node) is part of this project, not a prerequisite. The bootstrap procedure will be documented in the repo `README` and scripted where possible. The Terraform `kubernetes` provider connects to the running cluster to manage application-level objects; cluster installation itself is handled outside Terraform to avoid a chicken-and-egg dependency.
+**Cluster bootstrap is in scope.** Standing up the k3s cluster (installing k3s on the control-plane, joining the worker-1 and GPU worker as worker nodes, installing the NVIDIA device plugin DaemonSet on the GPU node) is part of this project, not a prerequisite. The bootstrap procedure will be documented in the repo `README` and scripted where possible. The Terraform `kubernetes` provider connects to the running cluster to manage application-level objects; cluster installation itself is handled outside Terraform to avoid a chicken-and-egg dependency.
 
 **Day/night model swap**
 
-Both the coder and Fish TTS models run as K8s Deployments pinned to the DGX Spark node via `nodeSelector`. Since both request the full GPU (`nvidia.com/gpu: 1`), only one can be scheduled at a time. Two `CronJobs` manage the swap:
+Both the coder and Fish TTS models run as K8s Deployments pinned to the GPU worker node via `nodeSelector`. Since both request the full GPU (`nvidia.com/gpu: 1`), only one can be scheduled at a time. Two `CronJobs` manage the swap:
 
 | CronJob | Schedule | Action |
 |---------|----------|--------|
@@ -197,13 +197,13 @@ Both the coder and Fish TTS models run as K8s Deployments pinned to the DGX Spar
 
 | Object | Name | Purpose |
 |--------|------|---------|
-| `Deployment` | `worker` | Polling worker, replica=1 — schedules on A8 or i5 |
-| `Deployment` | `fish-tts` | Fish TTS server — pinned to DGX Spark, GPU limit=1 |
-| `Deployment` | `coder` | Coder model — pinned to DGX Spark, GPU limit=1 |
+| `Deployment` | `worker` | Polling worker, replica=1 — schedules on control-plane or worker-1 |
+| `Deployment` | `fish-tts` | Fish TTS server — pinned to GPU worker, GPU limit=1 |
+| `Deployment` | `coder` | Coder model — pinned to GPU worker, GPU limit=1 |
 | `Service` | `fish-tts` | ClusterIP on port 8013 — worker reaches TTS via cluster DNS |
 | `ConfigMap` | `worker-config` | TTS service name, OCI region, API base URL, poll interval |
 | `Secret` | `worker-secrets` | OCI credentials |
-| `DaemonSet` | `nvidia-device-plugin` | Exposes GPU to the k3s scheduler on the DGX Spark node |
+| `DaemonSet` | `nvidia-device-plugin` | Exposes GPU to the k3s scheduler on the GPU worker node |
 | `CronJob` | `model-swap-to-night` | 23:00 — swap to Fish TTS |
 | `CronJob` | `model-swap-to-day` | 07:00 — swap to coder |
 | `CronJob` | `stale-job-reaper` | Hourly: resets jobs in `processing` > 2 hrs back to `queued` |
@@ -231,7 +231,7 @@ The Terraform `kubernetes` provider manages all K8s objects above alongside OCI 
 | 2 | User Pool access control | Reuse existing email-request approval flow from Know-It-All Tutor; self-sign-up disabled |
 | 3 | Polling worker auth | OCI request signing on worker-only API routes, using existing OCI RSA key pair |
 | 4 | WAV deletion | 48 hours via OCI lifecycle policy, or immediately on new job submission (with user warning) |
-| 5 | Worker runtime | K8s Deployment on k3s cluster (A8 control plane + i5 worker node); runs 24/7 |
-| 6 | DGX Spark orchestration | DGX Spark is a k3s GPU worker node; model swap managed by K8s CronJobs scaling Deployments |
+| 5 | Worker runtime | K8s Deployment on k3s cluster (control-plane control plane + worker-1 worker node); runs 24/7 |
+| 6 | GPU worker orchestration | GPU worker is a k3s GPU worker node; model swap managed by K8s CronJobs scaling Deployments |
 | 7 | TTS unavailability | Worker releases claim and backs off; jobs queue during the day, drain automatically at night |
 | 8 | Repo name | `myaudible`; worker source remains in `private_reading` repo as a new `worker/` module |

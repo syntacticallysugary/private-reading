@@ -131,19 +131,6 @@ class ChunkManager:
         except ImportError:
             chunks = list(paragraphs)
 
-        # Apply overlap: prepend tail of previous chunk, snapped to a word boundary
-        overlap_chars = int(self.max_chars * self.overlap_ratio)
-        if overlap_chars > 0 and len(chunks) > 1:
-            overlapped = [chunks[0]]
-            for i in range(1, len(chunks)):
-                tail = chunks[i - 1][-overlap_chars:]
-                # Snap forward to the first word boundary so we never start mid-word
-                space = tail.find(' ')
-                if space != -1:
-                    tail = tail[space + 1:]
-                overlapped.append(tail + ' ' + chunks[i] if tail else chunks[i])
-            chunks = overlapped
-
         return chunks
 
     async def add_silence_markers(self, chunks: List[str]) -> List[dict]:

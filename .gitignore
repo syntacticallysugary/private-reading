@@ -42,6 +42,11 @@ test_results*.txt
 .antigravitycli/
 .gemini/
 .playwright-mcp/
+.claude/
+.roo/
+
+# Terraform binary artifacts
+terraform/tfplan
 
 # Terraform — never commit state or secrets
 terraform/.terraform/
