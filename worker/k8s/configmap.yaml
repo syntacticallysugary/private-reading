@@ -11,6 +11,7 @@ data:
   TTS_ENDPOINT: "http://192.168.1.104:8014/v1/audio/speech"
   TTS_PROVIDER: "qwen"
   TTS_MODEL: "qwen3-tts-base"
+  TTS_REFERENCE_ID: "m-relaxed"
   TTS_TIMEOUT_SECONDS: "450"
   TTS_RETRY_ATTEMPTS: "2"
   SEMAPHORE_SIZE: "1"

@@ -44,7 +44,6 @@
       <!-- Tabs -->
       <div class="tabs">
         <button class="tab active" id="tab-convert-btn" onclick="showTab('convert')">Convert</button>
-        <button class="tab" id="tab-voice-btn" onclick="showTab('voice')">My Voice</button>
       </div>
 
       <!-- Convert tab -->
@@ -99,53 +98,11 @@
         </div>
       </div>
 
-      <!-- Voice tab -->
-      <div id="tab-voice" style="display: none;">
-
-        <!-- Preset voice picker -->
-        <p class="voice-section-label">Choose a narrator voice</p>
-        <div class="voice-card-grid" id="voice-picker-grid"></div>
-
-        <div class="or-divider">or use your own</div>
-
-        <!-- Active voice banner -->
-        <div id="voice-active-banner" class="voice-status-banner voice-active" style="display:none;">
-          <span>Your voice is active</span>
-          <button class="btn-text danger" onclick="deleteVoice()">Remove</button>
-        </div>
-        <!-- Pending voice banner -->
-        <div id="voice-pending-banner" class="voice-status-banner voice-pending" style="display:none;">
-          <div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>
-          <span>Registering your voice — next conversion will use it</span>
-        </div>
-
-        <!-- Recorder -->
-        <div id="voice-record-section">
-          <p class="voice-prompt-label">Read this aloud to capture your voice:</p>
-          <div class="voice-prompt-text">The quick brown fox jumps over the lazy dog. She sells seashells by the seashore. I am recording my voice for text-to-speech.</div>
-          <div class="recorder-controls">
-            <button class="btn btn-mic" id="mic-btn" onclick="toggleRecording()">Record</button>
-            <button class="btn btn-secondary" id="play-btn" onclick="playbackRecording()" disabled>Play back</button>
-          </div>
-          <div id="recording-indicator" class="recording-indicator" style="display:none;">
-            <span class="rec-dot"></span> Recording…
-          </div>
-          <div class="or-divider">or</div>
-          <input type="file" id="voice-file-input" accept="audio/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="loadAudioFile(this)">
-          <button class="btn btn-secondary file-upload-label" onclick="document.getElementById('voice-file-input').click()">Upload a recording</button>
-          <p class="upload-hint">MP3, M4A, WAV, OGG, FLAC, AAC accepted</p>
-          <div id="voice-upload-row" style="display:none; margin-top: 1rem;">
-            <button class="btn btn-primary" onclick="uploadVoice()">Use this voice</button>
-            <button class="btn btn-secondary" onclick="discardRecording()">Discard</button>
-          </div>
-          <div id="voice-error" class="error-box" style="display:none; margin-top:1rem;"></div>
-        </div>
-      </div>
     </div>
 
   </div>
 </div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
