@@ -64,7 +64,7 @@ class ChunkManager:
         text = re.sub(r"[∗†‡§¶]+", "", text)
         # Lines that are clearly metadata (short, no sentence-ending punctuation,
         # contain telltale tokens like "Preprint", "Corresponding author", "et al.")
-        cleaned_lines = []
+        cleaned_lines: list[str] = []
         for line in text.splitlines():
             stripped = line.strip()
             if re.match(
@@ -112,7 +112,7 @@ class ChunkManager:
                         chunks.append("\n\n".join(current_parts))
                         current_parts = []
                         current_len = 0
-                    sub = semchunk.chunk(para, self.max_chars, len)
+                    sub: list[str] = semchunk.chunk(para, self.max_chars, len)  # type: ignore[assignment]
                     chunks.extend(c.strip() for c in sub if c.strip())
                 else:
                     added_len = len(para) + (2 if current_parts else 0)

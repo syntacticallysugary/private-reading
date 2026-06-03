@@ -75,7 +75,7 @@ def get_file_size(file_path: Path) -> int:
     return file_path.stat().st_size
 
 
-def format_file_size(size_bytes: int) -> str:
+def format_file_size(size_bytes: float) -> str:
     """Format file size in human-readable format.
 
     Args:

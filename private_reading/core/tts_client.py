@@ -45,7 +45,7 @@ class TTSClient:
         self.repetition_penalty = repetition_penalty
         self.retry_attempts = retry_attempts
         self.timeout_seconds = timeout_seconds
-        self._session: Optional[object] = None
+        self._session: Optional[ClientSession] = None
 
     async def __aenter__(self) -> "TTSClient":
         """Async context manager entry."""

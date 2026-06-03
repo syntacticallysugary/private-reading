@@ -81,3 +81,19 @@ asyncio_mode = "auto"
 testpaths = ["tests/core", "tests/e2e", "tests/performance"]
 pythonpath = ["."]
 addopts = "-v --cov=private_reading --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+no_strict_optional = true
+warn_unused_ignores = false
+exclude = ["tests/", "tools/", "core/"]
+
+[[tool.mypy.overrides]]
+module = ["oci", "oci.*", "borneo", "borneo.*", "fdk", "fdk.*", "inotify_simple", "jsonlogger", "semchunk", "pdfplumber", "pdfplumber.*", "structlog", "structlog.*"]
+ignore_missing_imports = true
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["private_reading.utils.logging_config", "private_reading.utils.logging", "private_reading.core.pipeline"]
+ignore_errors = true
