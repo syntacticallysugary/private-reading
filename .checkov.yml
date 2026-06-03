@@ -1,0 +1,69 @@
+# Checkov configuration — documents intentional policy skips with rationale.
+
+skip-check:
+  # ── Kubernetes ──────────────────────────────────────────────────────────────
+
+  # CKV_K8S_43 / CKV_K8S_14: Image should use digest / fixed tag instead of latest.
+  # Using :latest is intentional for CI/CD rolling deploys in this project.
+  - CKV_K8S_43
+  - CKV_K8S_14
+
+  # CKV_K8S_23: Minimize root containers (runAsNonRoot).
+  # Deferred — requires non-root user in Dockerfile and OCI config path update.
+  # The OCI SDK config is mounted at /root/.oci; moving to a non-root UID
+  # requires coordinating the mount path and OCI_CONFIG_PATH env var.
+  - CKV_K8S_23
+
+  # CKV_K8S_35: Prefer secrets as files over environment variables.
+  # Secrets are mounted via secretRef envFrom for simplicity. Migrating to
+  # file-based secrets is a future hardening task.
+  - CKV_K8S_35
+
+  # CKV_K8S_19: Containers should not share the host network namespace.
+  # hostNetwork: true is required so the worker can reach the on-premises TTS
+  # server by its LAN IP. Remove once TTS is exposed via a k8s Service.
+  - CKV_K8S_19
+
+  # CKV_K8S_22: Use read-only filesystem for containers where possible.
+  # Worker writes temp WAV files during TTS chunk processing and ffmpeg
+  # transcoding; a writable filesystem is required.
+  - CKV_K8S_22
+
+  # CKV_K8S_40: Containers should run as a high UID.
+  # Deferred — requires non-root user in Dockerfile and OCI config path update.
+  - CKV_K8S_40
+
+  # CKV2_K8S_6: Minimize pods without a NetworkPolicy.
+  # NetworkPolicy is out of scope for the initial portfolio release.
+  - CKV2_K8S_6
+
+  # ── OCI / Terraform ─────────────────────────────────────────────────────────
+
+  # CKV_OCI_10: OCI Object Storage should not be public.
+  # The web bucket is intentionally public — it hosts the static SPA.
+  - CKV_OCI_10
+
+  # CKV_OCI_9: OCI Object Storage should use Customer Managed Keys.
+  # OCI default encryption is sufficient for a portfolio project.
+  - CKV_OCI_9
+
+  # CKV_OCI_7: OCI Object Storage bucket should emit object events.
+  # Object events are not required for this workload.
+  - CKV_OCI_7
+
+  # CKV_OCI_8: OCI Object Storage should have versioning enabled.
+  # Versioning adds cost and complexity not needed for this use case.
+  - CKV_OCI_8
+
+  # CKV_OCI_17: VCN inbound security lists should be stateless.
+  # Stateful rules simplify the security list; acceptable for this project.
+  - CKV_OCI_17
+
+  # CKV_OCI_16: VCN should have an inbound security list.
+  # Private subnet uses default security list; explicit list is not required.
+  - CKV_OCI_16
+
+  # CKV_OCI_19: No security list should allow ingress from 0.0.0.0:0 to port 22.
+  # SSH access is restricted to the private subnet security list.
+  # Review and tighten the allowed source CIDR before a production deployment.
+  - CKV_OCI_19

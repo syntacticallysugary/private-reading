@@ -13,8 +13,9 @@ spec:
       labels:
         app: private-reading-worker
     spec:
-      hostNetwork: true
+      hostNetwork: true   # required: worker reaches LAN TTS server by host IP
       dnsPolicy: Default
+      automountServiceAccountToken: false
       nodeSelector:
         kubernetes.io/hostname: r5
       tolerations:
@@ -22,12 +23,19 @@ spec:
         operator: "Equal"
         value: "workstation"
         effect: "NoSchedule"
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
       - name: ocir-pull-secret
       containers:
       - name: worker
         image: ord.ocir.io/<YOUR_OCI_NAMESPACE>/private-reading/worker:latest
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
         resources:
           requests:
             cpu: "100m"
@@ -35,6 +43,17 @@ spec:
           limits:
             cpu: "500m"
             memory: "512Mi"
+        livenessProbe:
+          exec:
+            command: ["pgrep", "-f", "worker.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["pgrep", "-f", "worker.py"]
+          initialDelaySeconds: 15
+          periodSeconds: 15
         envFrom:
         - configMapRef:
             name: private-reading-worker-config
