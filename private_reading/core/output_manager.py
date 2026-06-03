@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
-from private_reading.exceptions import OutputError, PrivateReadingError
+from private_reading.exceptions import OutputError
 
 
 @dataclass

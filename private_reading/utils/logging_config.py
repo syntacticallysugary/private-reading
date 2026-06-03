@@ -8,7 +8,7 @@ configurable log levels.
 
 Usage:
     from private_reading.utils.logging_config import get_logging_config
-    
+
     config = get_logging_config(log_level="INFO", log_format="json")
     logging_config = config.get_logging_config()
     logging.basicConfig(**logging_config)
@@ -153,7 +153,7 @@ def get_logging_config(
             journal_handler.setLevel(getattr(logging, log_level.upper()))
             journal_handler.setFormatter(formatter)
             handlers.append(journal_handler)
-        except Exception as e:
+        except Exception:
             # Journal handler failed, continue with other handlers
             pass
 

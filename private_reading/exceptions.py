@@ -84,12 +84,6 @@ class AudioProcessingError(AudioError):
     pass
 
 
-class OutputError(PrivateReadingError):
-    """Raised when output/metadata operations fail."""
-
-    pass
-
-
 class PipelineError(PrivateReadingError):
     """Raised when pipeline orchestration fails."""
 

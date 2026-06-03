@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypeVar
 
 import structlog
 
@@ -29,6 +29,8 @@ from private_reading.exceptions import (
     OutputError,
     TTSError,
 )
+
+T = TypeVar("T")
 
 
 def retry(max_retries: int = 3, backoff_base: float = 1.0):
@@ -208,7 +210,7 @@ class ProcessingPipeline:
                     await asyncio.sleep(backoff)
         raise last_exception  # type: ignore[raise-type]
 
-    async def process_file(self, file_path: Path) -> ProcessingResult:
+    async def process_file(self, file_path: Path) -> ProcessingResult:  # noqa: C901
         """Process a single file through the complete pipeline.
 
         The 7-step workflow:

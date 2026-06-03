@@ -6,50 +6,38 @@ from pathlib import Path
 import aiohttp
 
 ENDPOINT = "http://localhost:8008/v1/audio/speech"
-OUTPUT_DIR = Path("/home/jimbob/Dev/myaudible/tools/voice_samples")
+OUTPUT_DIR = Path(__file__).parent / "voice_samples"
 SAMPLE_TEXT = (
-    "Cost optimization is not about choosing the cheapest option but about aligning cost with usage. "
-    "One approach is to use serverless services like Lambda, which charge only for execution time. "
+    "Cost optimization is not about choosing the cheapest option"
+    " but about aligning cost with usage. "
+    "One approach is to use serverless services like Lambda,"
+    " which charge only for execution time. "
     "This eliminates idle resource costs. "
-    "For predictable workloads, Reserved Instances or Savings Plans can significantly reduce EC2 costs. "
-    "For flexible or fault-tolerant workloads, Spot Instances provide substantial savings."
+    "For predictable workloads, Reserved Instances or Savings Plans"
+    " can significantly reduce EC2 costs. "
+    "For flexible or fault-tolerant workloads,"
+    " Spot Instances provide substantial savings."
 )
 
+_RELAXED = (
+    "low-key and relaxed, unhurried and easy to listen to, with a natural conversational tone"
+)
+_INTIMATE = "intimate and empathetic, warm and personal, as if speaking directly to the listener"
+_CALM = "calm and grounded, steady and reassuring, clear and composed"
+_ENERGETIC = "energetic and engaging, dynamic and expressive, keeping the listener's attention"
+_ENTHUSIASTIC = "enthusiastic and friendly, upbeat and warm, genuinely excited about the content"
+
 VOICES = [
-    (
-        "m-relaxed",
-        "A man with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone",
-    ),
-    (
-        "f-relaxed",
-        "A woman with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone",
-    ),
-    (
-        "m-intimate",
-        "A man with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener",
-    ),
-    (
-        "f-intimate",
-        "A woman with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener",
-    ),
-    ("m-calm", "A man with a calm and grounded voice, steady and reassuring, clear and composed"),
-    ("f-calm", "A woman with a calm and grounded voice, steady and reassuring, clear and composed"),
-    (
-        "m-energetic",
-        "A man with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention",
-    ),
-    (
-        "f-energetic",
-        "A woman with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention",
-    ),
-    (
-        "m-enthusiastic",
-        "A man with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content",
-    ),
-    (
-        "f-enthusiastic",
-        "A woman with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content",
-    ),
+    ("m-relaxed", f"A man with a {_RELAXED} voice"),
+    ("f-relaxed", f"A woman with a {_RELAXED} voice"),
+    ("m-intimate", f"A man with an {_INTIMATE} voice"),
+    ("f-intimate", f"A woman with an {_INTIMATE} voice"),
+    ("m-calm", f"A man with a {_CALM} voice"),
+    ("f-calm", f"A woman with a {_CALM} voice"),
+    ("m-energetic", f"A man with an {_ENERGETIC} voice"),
+    ("f-energetic", f"A woman with an {_ENERGETIC} voice"),
+    ("m-enthusiastic", f"A man with an {_ENTHUSIASTIC} voice"),
+    ("f-enthusiastic", f"A woman with an {_ENTHUSIASTIC} voice"),
 ]
 
 

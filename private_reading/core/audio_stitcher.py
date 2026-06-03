@@ -141,7 +141,7 @@ class AudioStitcher:
                 "-f",
                 "lavfi",
                 "-i",
-                f"anullsrc=r=44100:cl=mono",
+                "anullsrc=r=44100:cl=mono",
                 "-t",
                 str(duration_sec),
                 "-c:a",

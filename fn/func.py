@@ -82,13 +82,13 @@ _COGNITO_JWKS = {
     "tyUmWO6W5q+5QxmjvpY08lPB3FcT4d5zHMgFAs4nqQE=": {
         "kty": "RSA",
         "alg": "RS256",
-        "n": "xbDfaYpW7dfVZryxFLwrt-GFdeeENXzdvUEV0lXdkjhp62WU6W6V6ojmC8f3bSfPXKSOp9pTviuLiybR96iaQcum4thIDKpO6rxNJdoqsm11-PA3SkTc9U_m9wbmtZP1cuXFOXMANywsztSqVDNd4LI9nbCqIcpiB8LYp138qZ2NjK7tHTIpQwn8H6au3VYJ2K0uWGRzl0RoQKn58qss17o-c5AxbJqwBH7r-NPqbIjlsaru5JMN34ut4O7x8okTEAsf_nR-3qKjK4MeAm7iKwE8kEiw-sNgEwmHIFiqnhZni5DUdAGNUcZN4TS4ZjcAhzVSWPXnhUzRw8e65Uyt_w",
+        "n": "xbDfaYpW7dfVZryxFLwrt-GFdeeENXzdvUEV0lXdkjhp62WU6W6V6ojmC8f3bSfPXKSOp9pTviuLiybR96iaQcum4thIDKpO6rxNJdoqsm11-PA3SkTc9U_m9wbmtZP1cuXFOXMANywsztSqVDNd4LI9nbCqIcpiB8LYp138qZ2NjK7tHTIpQwn8H6au3VYJ2K0uWGRzl0RoQKn58qss17o-c5AxbJqwBH7r-NPqbIjlsaru5JMN34ut4O7x8okTEAsf_nR-3qKjK4MeAm7iKwE8kEiw-sNgEwmHIFiqnhZni5DUdAGNUcZN4TS4ZjcAhzVSWPXnhUzRw8e65Uyt_w",  # noqa: E501
         "e": "AQAB",
     },
     "rNt+Fjj44hzmBN70ZvwvZGyR6HYh9j6HtYYJvBR2+ao=": {
         "kty": "RSA",
         "alg": "RS256",
-        "n": "x2eB3Ir7zRN5eDOjnsM5BmBOcu5Tmt-r10zsiMGJk3Q07o6cLySXyG16jsV3nn2YYYp1vQDG0MojmaK21iGaroE2X96mBwtwK84rTdaIt8PxPVimw2dywiXMlvvxlC3QU10tKZ0QuG8uwHUKCjmWQoIkhfQvx6PgbkztHhlW1z7iWlF9RjS8zDlUVS_Y4MrROai_RuNNRRP9C1I5RcsO-2Lnptk8Oq7dnUFKLBBgzV3Im0gDjgBGGB8l_9rqxik4kbbbXTEnSrFRYKDuzL6OAB4GM8P_J08owyzhbZFFEP1OZltGckndSDABrdYUllSqXhD8tCViOK_G_f1I-pHSZQ",
+        "n": "x2eB3Ir7zRN5eDOjnsM5BmBOcu5Tmt-r10zsiMGJk3Q07o6cLySXyG16jsV3nn2YYYp1vQDG0MojmaK21iGaroE2X96mBwtwK84rTdaIt8PxPVimw2dywiXMlvvxlC3QU10tKZ0QuG8uwHUKCjmWQoIkhfQvx6PgbkztHhlW1z7iWlF9RjS8zDlUVS_Y4MrROai_RuNNRRP9C1I5RcsO-2Lnptk8Oq7dnUFKLBBgzV3Im0gDjgBGGB8l_9rqxik4kbbbXTEnSrFRYKDuzL6OAB4GM8P_J08owyzhbZFFEP1OZltGckndSDABrdYUllSqXhD8tCViOK_G_f1I-pHSZQ",  # noqa: E501
         "e": "AQAB",
     },
 }
@@ -270,7 +270,7 @@ def _job_by_id(job_id: str) -> dict | None:
 _WORKER_PATH_RE = re.compile(r"^/worker/jobs/([^/]+)/(claim|complete|fail|progress)$")
 
 
-def _route(method: str, path: str, headers: dict, body: dict):
+def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
     if path.startswith("/v1"):
         path = path[3:]
 
@@ -331,7 +331,7 @@ def _route(method: str, path: str, headers: dict, body: dict):
         par = _get_os().create_preauthenticated_request(
             namespace_name=OCI_NAMESPACE,
             bucket_name=AUDIOBOOKS_BUCKET,
-            create_preauthenticated_request_details=oci.object_storage.models.CreatePreauthenticatedRequestDetails(
+            create_preauthenticated_request_details=oci.object_storage.models.CreatePreauthenticatedRequestDetails(  # noqa: E501
                 name=f"par-{job['job_id']}-{int(datetime.now(timezone.utc).timestamp())}",
                 object_name=audio_path,
                 access_type="ObjectRead",
@@ -463,7 +463,7 @@ def handler(ctx, data: io.BytesIO = None):
 
         resp_data, status, resp_headers = _route(method, path, headers, body)
 
-    except Exception as _exc:
+    except Exception:
         import traceback
 
         logger.exception("unhandled error in handler")

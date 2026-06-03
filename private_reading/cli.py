@@ -16,7 +16,6 @@ from private_reading.config import (
     SemaphoreConfig,
     TTSConfig,
 )
-from private_reading.core.chunk_manager import MAX_CHUNK
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
