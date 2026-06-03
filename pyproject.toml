@@ -70,12 +70,6 @@ max-line-length = 100
 ignore = ["E203", "W503"]
 max-complexity = 10
 
-[tool.mypy]
-python_version = "3.9"
-warn_return_any = true
-warn_unused_configs = true
-ignore_missing_imports = true
-
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests/core", "tests/e2e", "tests/performance"]

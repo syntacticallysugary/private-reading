@@ -13,7 +13,7 @@ class TestChunkManager:
     @pytest.fixture
     def chunk_manager(self):
         """Create ChunkManager instance."""
-        return ChunkManager(max_chars=500, overlap_ratio=0.1)
+        return ChunkManager(max_chars=150, overlap_ratio=0.1)
 
     @pytest.fixture
     def sample_text(self):
@@ -60,11 +60,11 @@ This is paragraph five to complete the test data.
 
     @pytest.mark.asyncio
     async def test_chunk_overlap(self, chunk_manager, sample_text):
-        """Test chunk overlap calculation."""
+        """Test chunk overlap calculation returns 10% of max_chars."""
         overlap = await chunk_manager.calculate_overlap()
 
         # Verify overlap is 10% of max_chars (500 * 0.1 = 50)
-        assert overlap == 50
+        assert overlap == 15  # 10% of max_chars=150
 
     @pytest.mark.asyncio
     async def test_chunk_empty_text(self, chunk_manager):

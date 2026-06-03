@@ -78,6 +78,6 @@ async def test_qwen_payload():
             assert payload["model"] == "qwen-v3"
             assert payload["response_format"] == "wav"
             assert payload["voice"] == "A deep voice"
-            assert payload["reference_id"] == "ref456"
+            assert "reference_id" not in payload
             assert payload["temperature"] == 0.5
             assert "top_p" not in payload

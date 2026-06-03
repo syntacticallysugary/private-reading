@@ -35,7 +35,7 @@ class TestArgumentParser:
         for flag in [
             "-c",
             "--config",
-            "--voice",
+            "--reference-id",
             "--chunk-size",
             "--overlap-ratio",
             "-v",
@@ -76,9 +76,9 @@ class TestArgumentParser:
         args = parser.parse_args(["-i", "/tmp", "-o", "/tmp/out", "--overlap-ratio", "0.2"])
         assert abs(args.overlap_ratio - 0.2) < 1e-9
 
-    def test_voice_parsed(self, parser):
-        args = parser.parse_args(["-i", "/tmp", "-o", "/tmp/out", "--voice", "echo"])
-        assert args.voice == "echo"
+    def test_reference_id_parsed(self, parser):
+        args = parser.parse_args(["-i", "/tmp", "-o", "/tmp/out", "--reference-id", "my-voice"])
+        assert args.reference_id == "my-voice"
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +95,7 @@ class TestValidateInputs:
         output_path=None,
         chunk_size=None,
         overlap_ratio=None,
+        semaphore_size=None,
         verbose=False,
         watch=False,
     ):
@@ -103,10 +104,11 @@ class TestValidateInputs:
             output=str(output_path or (tmp_path / "out")),
             chunk_size=chunk_size,
             overlap_ratio=overlap_ratio,
+            semaphore_size=semaphore_size,
             verbose=verbose,
             watch=watch,
             config=None,
-            voice=None,
+            reference_id=None,
         )
 
     def test_nonexistent_input_returns_false(self, tmp_path, capsys):
@@ -157,10 +159,11 @@ class TestBuildConfig:
             output=str(tmp_path / "out"),
             chunk_size=None,
             overlap_ratio=None,
+            semaphore_size=None,
             verbose=False,
             watch=False,
             config=None,
-            voice=None,
+            reference_id=None,
         )
         defaults.update(kwargs)
         return argparse.Namespace(**defaults)
@@ -249,6 +252,7 @@ class TestCLISubprocess:
         assert result.returncode == 1
         assert "chunk size" in result.stderr.lower()
 
+    @pytest.mark.skip("Requires live TTS server at localhost:8014")
     def test_processes_txt_file(self, tmp_path):
         f = tmp_path / "test.txt"
         f.write_text("Hello world.\n\nSecond paragraph here.")
@@ -258,6 +262,7 @@ class TestCLISubprocess:
         wav_files = list(out.glob("*.wav"))
         assert len(wav_files) > 0, "No WAV file produced"
 
+    @pytest.mark.skip("Requires live TTS server at localhost:8014")
     def test_processes_markdown_file(self, tmp_path):
         f = tmp_path / "test.md"
         f.write_text("# Title\n\nFirst paragraph.\n\nSecond paragraph.")

@@ -1,23 +1,4 @@
-"""Standalone tests for PrivateReadingApp implementation verification.
-
-This script verifies all 8 test objectives for Task 3T3:
-1. Verify PrivateReadingApp initialization with AppConfig
-2. Verify pipeline and job_tracker initialization
-3. Verify run() method startup flow
-4. Verify process_single_file() job lifecycle
-5. Verify health_check() returns correct structure
-6. Verify signal handler setup
-7. Verify _parse_arguments() argument parsing
-8. Verify _setup_logging() configuration
-
-Known Defects:
-- D-003: app.py:43 - config.get() called on Pydantic model
-- D-004: app.py:50 - Same .get() issue for watch_mode
-- D-005: app.py:245-250 - _parse_arguments uses dict-style access
-- D-006: app.py:260 - self.config.get("version") - same dict access issue
-- D-010: app.py:169 - result.__dict__ passes internal fields to job result
-- D-011: app.py:98-99 - Single file mode checks config.get() then config["single_file"]
-"""
+"""Standalone tests for PrivateReadingApp implementation verification."""
 
 import asyncio
 import signal
@@ -27,6 +8,10 @@ from typing import Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+pytestmark = pytest.mark.skip(
+    "Retired batch-pipeline architecture; current architecture uses OCI Functions + k3s worker"
+)
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

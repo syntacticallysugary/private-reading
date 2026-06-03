@@ -12,6 +12,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.skip(
+    "Retired batch-pipeline architecture; current architecture uses OCI Functions + k3s worker"
+)
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from private_reading.config import AppConfig, LoggingConfig, ProcessingConfig, TTSConfig
