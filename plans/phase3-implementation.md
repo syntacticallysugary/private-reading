@@ -19,7 +19,7 @@ All 6 Phase 2 core components are implemented and unit-tested:
 
 ### Task 3.1: ProcessingPipeline Implementation (2 hours)
 
-**File:** `myaudible/core/pipeline.py` (new file)
+**File:** `private_reading/core/pipeline.py` (new file)
 
 Implement the `ProcessingPipeline` class that orchestrates all Phase 2 components in the correct workflow sequence.
 
@@ -65,7 +65,7 @@ Implement the `ProcessingPipeline` class that orchestrates all Phase 2 component
 
 ### Task 3.2: JobTracker Implementation (1.5 hours)
 
-**File:** `myaudible/core/job_tracker.py` (new file)
+**File:** `private_reading/core/job_tracker.py` (new file)
 
 Implement job tracking to monitor processing state and provide visibility into pipeline operations.
 
@@ -111,13 +111,13 @@ Implement job tracking to monitor processing state and provide visibility into p
 
 ### Task 3.3: main.py Application Entry Point (1 hour)
 
-**File:** `myaudible/app.py` (modify existing)
+**File:** `private_reading/app.py` (modify existing)
 
 Create the main application class that ties everything together.
 
 **Subtasks:**
 
-1. Create `MyAudibleApp` class
+1. Create `PrivateReadingApp` class
    - Accept `AppConfig` in constructor
    - Initialize all components including `ProcessingPipeline` and `JobTracker`
 
@@ -143,7 +143,7 @@ Create the main application class that ties everything together.
 - Clean startup and shutdown
 
 **Acceptance Criteria:**
-- [ ] `MyAudibleApp` initializes all components from config
+- [ ] `PrivateReadingApp` initializes all components from config
 - [ ] `run()` starts the application
 - [ ] Single file processing works via CLI
 - [ ] File watcher mode works when enabled
@@ -151,7 +151,7 @@ Create the main application class that ties everything together.
 
 ### Task 3.4: CLI Interface (1 hour)
 
-**File:** `myaudible/cli.py` (new file)
+**File:** `private_reading/cli.py` (new file)
 
 Implement command-line interface using Python's `argparse` module.
 
@@ -184,9 +184,9 @@ Implement command-line interface using Python's `argparse` module.
 - `--help` shows comprehensive usage information
 
 **Acceptance Criteria:**
-- [ ] `python -m myaudible --help` shows usage
-- [ ] `python -m myaudible -i /path/to/file.md` processes file
-- [ ] `python -m myaudible -i /path/to/dir -w` watches directory
+- [ ] `python -m private_reading --help` shows usage
+- [ ] `python -m private_reading -i /path/to/file.md` processes file
+- [ ] `python -m private_reading -i /path/to/dir -w` watches directory
 - [ ] `--verbose` enables debug logging
 - [ ] Invalid inputs show helpful error messages
 
@@ -242,14 +242,14 @@ Implement end-to-end integration tests for the processing pipeline.
 
 ### Task 3.6: Error Handling (1 hour)
 
-**File:** `myaudible/exceptions.py` (modify existing), `myaudible/core/pipeline.py` (modify)
+**File:** `private_reading/exceptions.py` (modify existing), `private_reading/core/pipeline.py` (modify)
 
 Implement comprehensive error handling throughout the pipeline.
 
 **Subtasks:**
 
 1. Define custom exception hierarchy
-   - `MyAudibleError` (base)
+   - `PrivateReadingError` (base)
    - `ExtractionError` - Text extraction failures
    - `ChunkingError` - Chunking failures
    - `TTSError` - TTS API failures
@@ -349,16 +349,16 @@ graph TD
 
 | File | Purpose | Task |
 |------|---------|------|
-| `myaudible/core/pipeline.py` | ProcessingPipeline class | 3.1 |
-| `myaudible/core/job_tracker.py` | Job tracking and state management | 3.2 |
-| `myaudible/cli.py` | Command-line interface | 3.4 |
+| `private_reading/core/pipeline.py` | ProcessingPipeline class | 3.1 |
+| `private_reading/core/job_tracker.py` | Job tracking and state management | 3.2 |
+| `private_reading/cli.py` | Command-line interface | 3.4 |
 
 ### Files to Modify
 
 | File | Purpose | Task |
 |------|---------|------|
-| `myaudible/app.py` | Application entry point | 3.3 |
-| `myaudible/exceptions.py` | Custom exception hierarchy | 3.6 |
+| `private_reading/app.py` | Application entry point | 3.3 |
+| `private_reading/exceptions.py` | Custom exception hierarchy | 3.6 |
 | `tests/core/test_pipeline_integration.py` | Integration tests | 3.5 |
 
 ## Component Integration Reference

@@ -5,9 +5,10 @@ import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from myaudible.exceptions import TTSAPIError
-from myaudible.core.tts_client import TTSClient, TTSConfig
-from myaudible.models import VoiceConfig
+from private_reading.exceptions import TTSAPIError
+from private_reading.core.tts_client import TTSClient
+from private_reading.config import TTSConfig
+from private_reading.models import VoiceConfig
 
 
 class TestTTSClient:
@@ -78,7 +79,7 @@ class TestTTSClient:
         """Test speech generation with voice config."""
         tts_client._do_generate = AsyncMock(return_value=b"audio_data")
 
-        result = await tts_client.generate_speech("Test text", mock_voice_config)
+        result = await tts_client.generate_speech("Test text")
 
         # Verify _do_generate was called with voice config
         assert tts_client._do_generate.called
@@ -232,7 +233,7 @@ class TestTTSClient:
         """Test speech generation with ref_audio in voice config."""
         tts_client._do_generate = AsyncMock(return_value=b"audio_data")
 
-        result = await tts_client.generate_speech("Test text", mock_voice_config)
+        result = await tts_client.generate_speech("Test text")
 
         # Verify _do_generate was called
         assert tts_client._do_generate.called
@@ -242,7 +243,7 @@ class TestTTSClient:
         """Test speech generation with ref_text in voice config."""
         tts_client._do_generate = AsyncMock(return_value=b"audio_data")
 
-        result = await tts_client.generate_speech("Test text", mock_voice_config)
+        result = await tts_client.generate_speech("Test text")
 
         # Verify _do_generate was called
         assert tts_client._do_generate.called
@@ -252,7 +253,7 @@ class TestTTSClient:
         """Test speech generation with voice_design in voice config."""
         tts_client._do_generate = AsyncMock(return_value=b"audio_data")
 
-        result = await tts_client.generate_speech("Test text", mock_voice_config)
+        result = await tts_client.generate_speech("Test text")
 
         # Verify _do_generate was called
         assert tts_client._do_generate.called

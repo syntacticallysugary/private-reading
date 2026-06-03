@@ -1,0 +1,33 @@
+name: Deploy SPA
+on:
+  push:
+    paths:
+      - 'spa/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install OCI CLI
+        run: |
+          curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+          chmod +x install.sh
+          ./install.sh --accept-all-defaults
+          echo "/home/runner/bin" >> $GITHUB_PATH
+
+      - name: Configure OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
+          echo "${{ secrets.OCI_KEY }}" > ~/.oci/key.pem
+          chmod 600 ~/.oci/config ~/.oci/key.pem
+
+      - name: Sync SPA to Object Storage
+        run: |
+          oci os object bulk-upload \
+            -bn private-reading-prod-web \
+            --src-dir spa/ \
+            --overwrite \
+            --content-type-from-body

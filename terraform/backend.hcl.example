@@ -1,0 +1,14 @@
+# Copy this file to backend.hcl and fill in your values.
+# backend.hcl is gitignored — never commit it.
+#
+# Find your namespace:  oci os ns get
+# Find your region:     oci iam region list
+
+bucket   = "private-reading-tfstate"
+key      = "terraform.tfstate"
+region   = "us-ashburn-1"
+endpoint = "https://YOUR_NAMESPACE.compat.objectstorage.us-ashburn-1.oraclecloud.com"
+
+# Customer Secret Key from OCI Console → Profile → Customer Secret Keys
+access_key = "YOUR_ACCESS_KEY"
+secret_key = "YOUR_SECRET_KEY"

@@ -1,4 +1,4 @@
-"""Concurrency sweep test for myAudible TTS endpoint.
+"""Concurrency sweep test for Private Reading TTS endpoint.
 
 This script tests concurrent TTS requests against the endpoint used
 by the rest of the codebase to determine optimal concurrency levels.
@@ -13,9 +13,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from myaudible.core.chunk_manager import ChunkManager, MAX_CHUNK
-from myaudible.core.text_extractor import TextExtractor
-from myaudible.core.tts_client import TTSClient
+from private_reading.core.chunk_manager import ChunkManager, MAX_CHUNK
+from private_reading.core.text_extractor import TextExtractor
+from private_reading.core.tts_client import TTSClient
 
 
 async def run_sweep(chunks, concurrency, tts_client):

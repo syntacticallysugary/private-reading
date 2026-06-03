@@ -6,8 +6,8 @@ from pathlib import Path
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 
-from myaudible.exceptions import OutputError
-from myaudible.core.output_manager import OutputManager, OutputMetadata
+from private_reading.exceptions import OutputError
+from private_reading.core.output_manager import OutputManager, OutputMetadata
 
 
 class TestOutputManager:

@@ -1,7 +1,7 @@
 """Test suite for exception hierarchy and error handling verification.
 
 This test file verifies Task 3T5 objectives:
-1. Verify exception hierarchy: MyAudibleError base class
+1. Verify exception hierarchy: PrivateReadingError base class
 2. Verify ExtractionError, TextExtractionError, UnsupportedFormatError
 3. Verify ChunkingError
 4. Verify TTSError, TTSAPIError
@@ -19,8 +19,8 @@ import pytest
 from pathlib import Path
 from typing import Optional
 
-from myaudible.exceptions import (
-    MyAudibleError,
+from private_reading.exceptions import (
+    PrivateReadingError,
     ExtractionError,
     TextExtractionError,
     UnsupportedFormatError,
@@ -37,18 +37,18 @@ from myaudible.exceptions import (
 class TestExceptionHierarchy:
     """Test objectives 1-7: Exception hierarchy verification."""
 
-    def test_myaudible_error_is_base_class(self) -> None:
-        """Objective 1: Verify MyAudibleError is the base class."""
-        assert issubclass(ExtractionError, MyAudibleError)
-        assert issubclass(ChunkingError, MyAudibleError)
-        assert issubclass(TTSError, MyAudibleError)
-        assert issubclass(AudioError, MyAudibleError)
-        assert issubclass(OutputError, MyAudibleError)
-        assert issubclass(PipelineError, MyAudibleError)
+    def test_private_reading_error_is_base_class(self) -> None:
+        """Objective 1: Verify PrivateReadingError is the base class."""
+        assert issubclass(ExtractionError, PrivateReadingError)
+        assert issubclass(ChunkingError, PrivateReadingError)
+        assert issubclass(TTSError, PrivateReadingError)
+        assert issubclass(AudioError, PrivateReadingError)
+        assert issubclass(OutputError, PrivateReadingError)
+        assert issubclass(PipelineError, PrivateReadingError)
 
     def test_extraction_error_hierarchy(self) -> None:
         """Objective 2: Verify ExtractionError and its subclasses."""
-        assert issubclass(ExtractionError, MyAudibleError)
+        assert issubclass(ExtractionError, PrivateReadingError)
         assert issubclass(TextExtractionError, ExtractionError)
         assert issubclass(UnsupportedFormatError, ExtractionError)
 
@@ -75,11 +75,11 @@ class TestExceptionHierarchy:
         """Objective 3: Verify ChunkingError."""
         error = ChunkingError("Chunking failed")
         assert str(error) == "Chunking failed"
-        assert isinstance(error, MyAudibleError)
+        assert isinstance(error, PrivateReadingError)
 
     def test_tts_error_hierarchy(self) -> None:
         """Objective 4: Verify TTSError and TTSAPIError."""
-        assert issubclass(TTSError, MyAudibleError)
+        assert issubclass(TTSError, PrivateReadingError)
         assert issubclass(TTSAPIError, TTSError)
 
     def test_tts_api_error_instantiation(self) -> None:
@@ -87,11 +87,11 @@ class TestExceptionHierarchy:
         error = TTSAPIError("TTS API call failed")
         assert str(error) == "TTS API call failed"
         assert isinstance(error, TTSError)
-        assert isinstance(error, MyAudibleError)
+        assert isinstance(error, PrivateReadingError)
 
     def test_audio_error_hierarchy(self) -> None:
         """Objective 5: Verify AudioError and AudioProcessingError."""
-        assert issubclass(AudioError, MyAudibleError)
+        assert issubclass(AudioError, PrivateReadingError)
         assert issubclass(AudioProcessingError, AudioError)
 
     def test_audio_processing_error_instantiation(self) -> None:
@@ -104,13 +104,13 @@ class TestExceptionHierarchy:
         """Objective 6: Verify OutputError."""
         error = OutputError("Output operation failed")
         assert str(error) == "Output operation failed"
-        assert isinstance(error, MyAudibleError)
+        assert isinstance(error, PrivateReadingError)
 
     def test_pipeline_error_instantiation(self) -> None:
         """Objective 7: Verify PipelineError."""
         error = PipelineError("Pipeline orchestration failed")
         assert str(error) == "Pipeline orchestration failed"
-        assert isinstance(error, MyAudibleError)
+        assert isinstance(error, PrivateReadingError)
 
 
 class TestExceptionMessages:
@@ -119,7 +119,7 @@ class TestExceptionMessages:
     def test_all_exceptions_have_messages(self) -> None:
         """Verify all exception types can be instantiated with messages."""
         exceptions = [
-            MyAudibleError("Base error"),
+            PrivateReadingError("Base error"),
             ExtractionError("Extraction error"),
             TextExtractionError("Text extraction error"),
             UnsupportedFormatError("Unsupported format"),
@@ -148,7 +148,7 @@ class TestPipelineExceptionHandling:
 
     def test_pipeline_imports_exceptions(self) -> None:
         """Verify pipeline module imports the exception classes."""
-        from myaudible.core.pipeline import (
+        from private_reading.core.pipeline import (
             AudioError,
             ChunkingError,
             ExtractionError,
@@ -162,7 +162,7 @@ class TestPipelineExceptionHandling:
         # This test verifies the pipeline has proper exception handling
         # by checking the source code has the catch block
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "except ExtractionError" in source
@@ -170,7 +170,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_chunking_error(self) -> None:
         """Verify pipeline catches ChunkingError."""
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "except ChunkingError" in source
@@ -178,7 +178,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_tts_error(self) -> None:
         """Verify pipeline catches TTSError."""
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "except TTSError" in source
@@ -186,7 +186,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_audio_error(self) -> None:
         """Verify pipeline catches AudioError."""
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "except AudioError" in source
@@ -194,7 +194,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_output_error(self) -> None:
         """Verify pipeline catches OutputError."""
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "except OutputError" in source
@@ -202,7 +202,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_has_error_logging(self) -> None:
         """Objective 9: Verify pipeline has error logging with context."""
         import inspect
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
         assert "_logger.error" in source
@@ -214,12 +214,12 @@ class TestRetryLogic:
 
     def test_pipeline_has_retry_decorator(self) -> None:
         """Verify pipeline has retry decorator for transient errors."""
-        from myaudible.core.pipeline import retry
+        from private_reading.core.pipeline import retry
         assert callable(retry)
 
     def test_retry_decorator_parameters(self) -> None:
         """Verify retry decorator accepts max_retries and backoff_base."""
-        from myaudible.core.pipeline import retry
+        from private_reading.core.pipeline import retry
 
         # Test with default parameters
         decorator = retry()
@@ -231,13 +231,13 @@ class TestRetryLogic:
 
     def test_retry_with_backoff_method_exists(self) -> None:
         """Verify pipeline has _retry_with_backoff method."""
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         assert hasattr(ProcessingPipeline, "_retry_with_backoff")
 
     def test_retry_exponential_backoff_calculation(self) -> None:
         """Verify exponential backoff calculation is correct."""
-        from myaudible.core.pipeline import retry
+        from private_reading.core.pipeline import retry
 
         decorator = retry(max_retries=3, backoff_base=1.0)
         wrapped_func = decorator(lambda: None)

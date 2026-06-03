@@ -5,14 +5,14 @@ To revert, apply the "Before" values in each section.
 
 ---
 
-## 1. `myaudible/core/tts_client.py`
+## 1. `private_reading/core/tts_client.py`
 
 ### Removed at module level
 ```python
 # REMOVED — was after imports
 import os
 TTS_SEED: int = int(os.environ.get("TTS_SEED", 42))
-from myaudible.models import VoiceConfig
+from private_reading.models import VoiceConfig
 
 # REMOVED — local TTSConfig stub class (was not the real config)
 class TTSConfig:
@@ -111,7 +111,7 @@ if self.reference_id:
 
 ---
 
-## 2. `myaudible/config.py`
+## 2. `private_reading/config.py`
 
 ### Removed at module level
 ```python
@@ -156,7 +156,7 @@ class TTSConfig(BaseSettings):
 
 ---
 
-## 3. `myaudible/core/pipeline.py`
+## 3. `private_reading/core/pipeline.py`
 
 ### TTSClient instantiation — Before → After
 
@@ -184,7 +184,7 @@ self.tts_client = TTSClient(
 
 ---
 
-## 4. `myaudible/cli.py`
+## 4. `private_reading/cli.py`
 
 ### Argument parser — Before → After
 
@@ -202,12 +202,12 @@ optional.add_argument("--reference-id", default=None, dest="reference_id", help=
 
 **Before:**
 ```
-"  python -m myaudible -i document.md -o ./output -v --voice echo\n"
+"  python -m private_reading -i document.md -o ./output -v --voice echo\n"
 ```
 
 **After:**
 ```
-"  python -m myaudible -i document.md -o ./output -v --reference-id my-voice\n"
+"  python -m private_reading -i document.md -o ./output -v --reference-id my-voice\n"
 ```
 
 ### `build_config` TTSConfig construction — Before → After

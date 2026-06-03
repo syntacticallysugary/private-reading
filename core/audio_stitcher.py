@@ -1,4 +1,4 @@
-"""Audio stitching for myAudible.
+"""Audio stitching for Private Reading.
 
 This module provides the AudioStitcher class for combining WAV chunks
 into final output using ffmpeg.
@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
-from myaudible.exceptions import AudioProcessingError
+from private_reading.exceptions import AudioProcessingError
 
 
 class AudioStitcher:

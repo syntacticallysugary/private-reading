@@ -1,5 +1,5 @@
 """
-Systemd Integration Tests for myAudible
+Systemd Integration Tests for Private Reading
 
 This module provides tests for the systemd integration setup.
 Since this is a test environment (not a systemd system), these tests
@@ -16,8 +16,8 @@ class TestSystemdIntegration:
     """Test class for systemd integration setup verification."""
 
     # File paths to test
-    PATH_FILE = Path("plans/systemd/myaudible-input.path")
-    SERVICE_FILE = Path("plans/systemd/myaudible.service")
+    PATH_FILE = Path("plans/systemd/private-reading-input.path")
+    SERVICE_FILE = Path("plans/systemd/private_reading.service")
     INSTALL_SCRIPT = Path("plans/install.sh")
     ENV_TEMPLATE = Path("plans/.env.example")
 

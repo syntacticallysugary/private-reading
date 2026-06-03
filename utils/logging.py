@@ -1,4 +1,4 @@
-"""Structured logging setup for myAudible.
+"""Structured logging setup for Private Reading.
 
 This module provides logging configuration using structlog for
 structured, JSON-formatted log output.
@@ -10,7 +10,7 @@ import logging
 import structlog
 from pathlib import Path
 
-from myaudible.config import AppConfig
+from private_reading.config import AppConfig
 
 
 def setup_logging(config: AppConfig) -> None:
@@ -43,7 +43,7 @@ def setup_logging(config: AppConfig) -> None:
         )
 
 
-def get_logger(name: str = "myaudible") -> structlog.types.BoundLogger:
+def get_logger(name: str = "private_reading") -> structlog.types.BoundLogger:
     """Get a structured logger instance.
 
     Args:

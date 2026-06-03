@@ -1,0 +1,35 @@
+name: Deploy Worker
+on:
+  push:
+    paths:
+      - 'worker/**'
+      - 'private_reading/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login to OCIR
+        run: |
+          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "axwer8ojpvgx/${{ secrets.OCI_USER_NAME }}" --password-stdin
+
+      - name: Build and Push Image
+        run: |
+          # Build from root to include private_reading
+          docker build -t ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} -f worker/Dockerfile .
+          docker tag ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} ord.ocir.io/axwer8ojpvgx/private-reading/worker:latest
+          docker push ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }}
+          docker push ord.ocir.io/axwer8ojpvgx/private-reading/worker:latest
+
+      - name: Set Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Update K8s Deployment
+        run: |
+          kubectl set image deployment/private-reading-worker worker=ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} -n private-reading
+          kubectl rollout status deployment/private-reading-worker -n private-reading

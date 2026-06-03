@@ -1,4 +1,4 @@
-"""Output handling for myAudible.
+"""Output handling for Private Reading.
 
 This module provides the OutputManager class for managing output file
 generation and metadata.
@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
-from myaudible.exceptions import OutputError
+from private_reading.exceptions import OutputError
 
 
 @dataclass

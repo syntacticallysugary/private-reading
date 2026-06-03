@@ -1,4 +1,4 @@
-"""Async application class for myAudible.
+"""Async application class for Private Reading.
 
 This module provides the main application class that orchestrates
 the file processing pipeline.
@@ -10,12 +10,12 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
-from myaudible.config import AppConfig
-from myaudible.utils.logging import setup_logging, get_logger
+from private_reading.config import AppConfig
+from private_reading.utils.logging import setup_logging, get_logger
 
 
 class App:
-    """Async application class for myAudible.
+    """Async application class for Private Reading.
 
     This class orchestrates the file processing pipeline by:
     1. Loading configuration

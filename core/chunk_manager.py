@@ -1,4 +1,4 @@
-"""Text chunking for myAudible.
+"""Text chunking for Private Reading.
 
 This module provides the ChunkManager class for splitting extracted text
 into semantic chunks for TTS processing.
@@ -20,7 +20,7 @@ except ImportError:
         "semchunk not available; falling back to paragraph-based splitting"
     )
 
-from myaudible.exceptions import ChunkingError, MyAudibleError
+from private_reading.exceptions import ChunkingError, PrivateReadingError
 
 # Global constant for chunk size configuration - easy to adjust
 MAX_CHUNK = 800

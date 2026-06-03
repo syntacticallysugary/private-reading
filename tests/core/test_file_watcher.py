@@ -5,8 +5,8 @@ import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from myaudible.exceptions import MonitoringError, FileWatcherError
-from myaudible.core.file_watcher import FileWatcher
+from private_reading.exceptions import MonitoringError, FileWatcherError
+from private_reading.core.file_watcher import FileWatcher
 
 
 class TestFileWatcher:

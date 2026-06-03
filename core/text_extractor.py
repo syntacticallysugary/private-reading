@@ -1,4 +1,4 @@
-"""Text extraction for myAudible.
+"""Text extraction for Private Reading.
 
 This module provides the TextExtractor class for extracting plain text
 from various document formats.
@@ -13,7 +13,7 @@ import pdfplumber
 
 PDF = pdfplumber.open
 
-from myaudible.exceptions import TextExtractionError, UnsupportedFormatError
+from private_reading.exceptions import TextExtractionError, UnsupportedFormatError
 
 
 class TextExtractor:

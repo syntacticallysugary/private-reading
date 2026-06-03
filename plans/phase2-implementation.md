@@ -162,6 +162,6 @@ graph TD
 
 ## Dependencies
 
-- Phase 1 complete (config module at `myaudible/config.py`)
+- Phase 1 complete (config module at `private_reading/config.py`)
 - Dependencies in `requirements.txt` installed
 - Virtual environment active

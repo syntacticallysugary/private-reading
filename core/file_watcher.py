@@ -1,4 +1,4 @@
-"""File monitoring for myAudible.
+"""File monitoring for Private Reading.
 
 This module provides the FileWatcher class for monitoring input directories
 for new files using inotify.
@@ -38,7 +38,7 @@ except ImportError:
     events = _events_proxy
     watch = None  # type: ignore
 
-from myaudible.exceptions import MonitoringError, FileWatcherError  # noqa: F401
+from private_reading.exceptions import MonitoringError, FileWatcherError  # noqa: F401
 
 
 class FileWatcher:

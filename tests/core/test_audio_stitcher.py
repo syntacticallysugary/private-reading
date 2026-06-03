@@ -5,8 +5,8 @@ import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from myaudible.exceptions import AudioProcessingError
-from myaudible.core.audio_stitcher import AudioStitcher
+from private_reading.exceptions import AudioProcessingError
+from private_reading.core.audio_stitcher import AudioStitcher
 
 
 class TestAudioStitcher:

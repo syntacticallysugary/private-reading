@@ -1,1 +1,1 @@
-"""Test package for myAudible."""
+"""Test package for Private Reading."""

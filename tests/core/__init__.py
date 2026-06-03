@@ -1,1 +1,1 @@
-"""Core module tests for myAudible."""
+"""Core module tests for Private Reading."""

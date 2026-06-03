@@ -1,0 +1,8 @@
+oci>=2.119
+requests>=2.31
+aiohttp>=3.9
+pydantic-settings>=2.1
+structlog>=23
+semchunk>=0.1.0
+ffmpeg-python>=0.2
+scipy>=1.11

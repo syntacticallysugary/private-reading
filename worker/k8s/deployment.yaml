@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: private-reading-worker
+  namespace: private-reading
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: private-reading-worker
+  template:
+    metadata:
+      labels:
+        app: private-reading-worker
+    spec:
+      hostNetwork: true
+      dnsPolicy: Default
+      nodeSelector:
+        kubernetes.io/hostname: r5
+      tolerations:
+      - key: "role"
+        operator: "Equal"
+        value: "workstation"
+        effect: "NoSchedule"
+      imagePullSecrets:
+      - name: ocir-pull-secret
+      containers:
+      - name: worker
+        image: ord.ocir.io/axwer8ojpvgx/private-reading/worker:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        envFrom:
+        - configMapRef:
+            name: private-reading-worker-config
+        - secretRef:
+            name: private-reading-worker-secrets
+        volumeMounts:
+        - name: oci-config
+          mountPath: /root/.oci
+          readOnly: true
+
+      volumes:
+      - name: oci-config
+        secret:
+          secretName: private-reading-oci-config
+          items:
+          - key: config
+            path: config
+          - key: key.pem
+            path: key.pem

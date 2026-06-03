@@ -1,4 +1,4 @@
-# myAudible - Implementation Plan
+# Private Reading - Implementation Plan
 
 ## Document Information
 
@@ -285,7 +285,7 @@ Timeline:  Day 1        Day 2-4        Day 5-6        Day 7        Day 8-9      
 ### 2.5 Files to Create
 
 ```
-myaudible/
+private_reading/
 ├── __init__.py
 ├── config.py              # Configuration classes
 ├── exceptions.py          # Custom exceptions
@@ -350,7 +350,7 @@ myaudible/
 #### 2.1 TextExtractor
 
 ```python
-# myaudible/core/text_extractor.py
+# private_reading/core/text_extractor.py
 class TextExtractor:
     async def extract(self, file_path: Path) -> str:
         # Handle .md, .pdf, .txt, .docx
@@ -376,7 +376,7 @@ class TextExtractor:
 #### 2.2 ChunkManager
 
 ```python
-# myaudible/core/chunk_manager.py
+# private_reading/core/chunk_manager.py
 class ChunkManager:
     def __init__(self, max_chars: int = 500, overlap_ratio: float = 0.1):
         pass
@@ -393,7 +393,7 @@ class ChunkManager:
 #### 2.3 TTSClient
 
 ```python
-# myaudible/core/tts_client.py
+# private_reading/core/tts_client.py
 class TTSClient:
     def __init__(self, endpoint: str, retry_attempts: int = 3):
         pass
@@ -407,7 +407,7 @@ class TTSClient:
 #### 2.4 AudioStitcher
 
 ```python
-# myaudible/core/audio_stitcher.py
+# private_reading/core/audio_stitcher.py
 class AudioStitcher:
     def __init__(self, ffmpeg_path: str = 'ffmpeg'):
         pass
@@ -426,7 +426,7 @@ class AudioStitcher:
 #### 2.5 OutputManager
 
 ```python
-# myaudible/core/output_manager.py
+# private_reading/core/output_manager.py
 class OutputManager:
     def __init__(self, output_dir: Path, processed_dir: Optional[Path] = None):
         pass
@@ -447,7 +447,7 @@ class OutputManager:
 #### 2.6 FileWatcher
 
 ```python
-# myaudible/core/file_watcher.py
+# private_reading/core/file_watcher.py
 class FileWatcher:
     def __init__(self, input_path: Path, callback: Callable):
         pass
@@ -500,8 +500,8 @@ class FileWatcher:
 ### 4.5 Pipeline Implementation
 
 ```python
-# myaudible/app.py
-class MyAudibleApp:
+# private_reading/app.py
+class PrivateReadingApp:
     def __init__(self, config: AppConfig):
         self.config = config
         self.extractor = TextExtractor()
@@ -549,8 +549,8 @@ class MyAudibleApp:
 
 | ID | Task | Description | Estimated | Dependencies |
 |----|------|-------------|-----------|--------------|
-| 4.1 | Create systemd path unit | myaudible-input.path | 30 min | 3.4 |
-| 4.2 | Create systemd service | myaudible.service | 30 min | 4.1 |
+| 4.1 | Create systemd path unit | private-reading-input.path | 30 min | 3.4 |
+| 4.2 | Create systemd service | private_reading.service | 30 min | 4.1 |
 | 4.3 | Create installation script | install.sh | 1 hour | 4.1-4.2 |
 | 4.4 | Create .env.example | Environment template | 15 min | 1.7 |
 | 4.5 | Configure logging | Structured JSON logging | 30 min | 1.5 |
@@ -572,37 +572,37 @@ class MyAudibleApp:
 
 ### 5.5 Systemd Files
 
-**myaudible-input.path**:
+**private-reading-input.path**:
 
 ```ini
 [Unit]
-Description=myAudible Input Directory Monitor
+Description=Private Reading Input Directory Monitor
 After=network.target
 
 [Path]
 PathExists=/input
 DirectoryMode=0755
-Unit=myaudible.service
+Unit=private_reading.service
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-**myaudible.service**:
+**private_reading.service**:
 
 ```ini
 [Unit]
-Description=myAudible Processing Service
-After=network.target myaudible-input.path
-Requires=myaudible-input.path
+Description=Private Reading Processing Service
+After=network.target private-reading-input.path
+Requires=private-reading-input.path
 
 [Service]
 Type=simple
-User=myaudible
-Group=myaudible
-WorkingDirectory=/opt/myaudible
-ExecStart=/opt/myaudible/venv/bin/python -m myaudible.app
-EnvironmentFile=/opt/myaudible/.env
+User=private-reading
+Group=private-reading
+WorkingDirectory=/opt/private-reading
+ExecStart=/opt/private_reading/venv/bin/python -m private_reading.app
+EnvironmentFile=/opt/private-reading/.env
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal

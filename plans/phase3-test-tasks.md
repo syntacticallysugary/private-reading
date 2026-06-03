@@ -9,12 +9,12 @@
 ## Phase 3 Scope Summary
 
 Phase 3 assembles all Phase 2 core components into a cohesive processing pipeline with:
-- **Task 3.1**: [`ProcessingPipeline`](myaudible/core/pipeline.py) - Orchestration layer
-- **Task 3.2**: [`JobTracker`](myaudible/core/job_tracker.py) - Job state management
-- **Task 3.3**: [`MyAudibleApp`](myaudible/app.py) - Application entry point
-- **Task 3.4**: [`CLI Interface`](myaudible/cli.py) - Command-line interface
+- **Task 3.1**: [`ProcessingPipeline`](private_reading/core/pipeline.py) - Orchestration layer
+- **Task 3.2**: [`JobTracker`](private_reading/core/job_tracker.py) - Job state management
+- **Task 3.3**: [`PrivateReadingApp`](private_reading/app.py) - Application entry point
+- **Task 3.4**: [`CLI Interface`](private_reading/cli.py) - Command-line interface
 - **Task 3.5**: Integration tests in [`test_pipeline_integration.py`](tests/core/test_pipeline_integration.py)
-- **Task 3.6**: Error handling in [`exceptions.py`](myaudible/exceptions.py)
+- **Task 3.6**: Error handling in [`exceptions.py`](private_reading/exceptions.py)
 
 ## Pre-Conditions (Definition of Ready)
 
@@ -29,18 +29,18 @@ During my code audit, I identified the following **pre-existing defects** that w
 
 | Bug ID | File | Line | Severity | Description |
 |--------|------|------|----------|-------------|
-| D-001 | [`pipeline.py`](myaudible/core/pipeline.py:156) | 156 | CRITICAL | `_retry_with_backoff` uses undefined type variable `T` - will raise `NameError` |
-| D-002 | [`pipeline.py`](myaudible/core/pipeline.py:154) | 154 | CRITICAL | `job_tracker` is `None` placeholder - `MyAudibleApp` never injects it into pipeline |
-| D-003 | [`app.py`](myaudible/app.py:43) | 43 | CRITICAL | `config.get()` called on Pydantic model - `AppConfig` has no `.get()` method |
-| D-004 | [`app.py`](myaudible/app.py:50) | 50 | CRITICAL | Same `.get()` issue for `watch_mode` |
-| D-005 | [`app.py`](myaudible/app.py:245-250) | 245-250 | CRITICAL | `_parse_arguments` uses dict-style access on Pydantic model |
-| D-006 | [`app.py`](myaudible/app.py:260) | 260 | HIGH | `self.config.get("version")` - same dict access issue |
-| D-007 | [`cli.py`](myaudible/cli.py:178-189) | 178-189 | HIGH | CLI stores voice/watch as `_voice`/`_watch_mode` private attrs - app doesn't read them |
-| D-008 | [`pipeline.py`](myaudible/core/pipeline.py:327) | 327 | MEDIUM | Sidecar metadata uses `len(audio_chunks)` for duration - counts chunks not seconds |
-| D-009 | [`pipeline.py`](myaudible/core/pipeline.py:319) | 319 | HIGH | `audio_chunks[0]` used for `save_wav` - should use stitched output |
-| D-010 | [`app.py`](myaudible/app.py:169) | 169 | MEDIUM | `result.__dict__` passes internal fields (`success`, `error`) to job result |
-| D-011 | [`app.py`](myaudible/app.py:98-99) | 98-99 | CRITICAL | Single file mode checks `self.config.get()` then `self.config["single_file"]` - inconsistent access |
-| D-012 | [`pipeline.py`](myaudible/core/pipeline.py:502-530) | 502-530 | LOW | Health checks use bare `try/except` that masks real errors |
+| D-001 | [`pipeline.py`](private_reading/core/pipeline.py:156) | 156 | CRITICAL | `_retry_with_backoff` uses undefined type variable `T` - will raise `NameError` |
+| D-002 | [`pipeline.py`](private_reading/core/pipeline.py:154) | 154 | CRITICAL | `job_tracker` is `None` placeholder - `PrivateReadingApp` never injects it into pipeline |
+| D-003 | [`app.py`](private_reading/app.py:43) | 43 | CRITICAL | `config.get()` called on Pydantic model - `AppConfig` has no `.get()` method |
+| D-004 | [`app.py`](private_reading/app.py:50) | 50 | CRITICAL | Same `.get()` issue for `watch_mode` |
+| D-005 | [`app.py`](private_reading/app.py:245-250) | 245-250 | CRITICAL | `_parse_arguments` uses dict-style access on Pydantic model |
+| D-006 | [`app.py`](private_reading/app.py:260) | 260 | HIGH | `self.config.get("version")` - same dict access issue |
+| D-007 | [`cli.py`](private_reading/cli.py:178-189) | 178-189 | HIGH | CLI stores voice/watch as `_voice`/`_watch_mode` private attrs - app doesn't read them |
+| D-008 | [`pipeline.py`](private_reading/core/pipeline.py:327) | 327 | MEDIUM | Sidecar metadata uses `len(audio_chunks)` for duration - counts chunks not seconds |
+| D-009 | [`pipeline.py`](private_reading/core/pipeline.py:319) | 319 | HIGH | `audio_chunks[0]` used for `save_wav` - should use stitched output |
+| D-010 | [`app.py`](private_reading/app.py:169) | 169 | MEDIUM | `result.__dict__` passes internal fields (`success`, `error`) to job result |
+| D-011 | [`app.py`](private_reading/app.py:98-99) | 98-99 | CRITICAL | Single file mode checks `self.config.get()` then `self.config["single_file"]` - inconsistent access |
+| D-012 | [`pipeline.py`](private_reading/core/pipeline.py:502-530) | 502-530 | LOW | Health checks use bare `try/except` that masks real errors |
 
 ## Test Task Assignments
 
@@ -96,14 +96,14 @@ During my code audit, I identified the following **pre-existing defects** that w
 
 ---
 
-### Task 3T3: Verify MyAudibleApp Implementation (Task 3.3)
+### Task 3T3: Verify PrivateReadingApp Implementation (Task 3.3)
 
 **Assignee:** @QA_Tester
 **Dependencies:** Task 3T1, Task 3T2
 **Estimated Duration:** 1.5 hours
 
 **Test Objectives:**
-1. Verify `MyAudibleApp` initialization with `AppConfig`
+1. Verify `PrivateReadingApp` initialization with `AppConfig`
 2. Verify pipeline and job_tracker initialization
 3. Verify `run()` method startup flow
 4. Verify `process_single_file()` job lifecycle
@@ -142,7 +142,7 @@ During my code audit, I identified the following **pre-existing defects** that w
 11. Verify output directory writability validation
 
 **Acceptance Criteria:**
-- `python -m myaudible --help` shows usage
+- `python -m private_reading --help` shows usage
 - Invalid inputs show helpful error messages
 - CLI arguments override config defaults
 - Path validation works correctly
@@ -158,7 +158,7 @@ During my code audit, I identified the following **pre-existing defects** that w
 **Estimated Duration:** 1 hour
 
 **Test Objectives:**
-1. Verify exception hierarchy: `MyAudibleError` base class
+1. Verify exception hierarchy: `PrivateReadingError` base class
 2. Verify `ExtractionError`, `TextExtractionError`, `UnsupportedFormatError`
 3. Verify `ChunkingError`
 4. Verify `TTSError`, `TTSAPIError`
@@ -207,7 +207,7 @@ During my code audit, I identified the following **pre-existing defects** that w
 |-------|-------|-------------------|-------|
 | T1 | 3T1: ProcessingPipeline | 2 hours | Foundation - test first |
 | T2 | 3T2: JobTracker | 1.5 hours | Can run in parallel with T1 |
-| T3 | 3T3: MyAudibleApp | 1.5 hours | Depends on T1, T2 |
+| T3 | 3T3: PrivateReadingApp | 1.5 hours | Depends on T1, T2 |
 | T4 | 3T4: CLI Interface | 1 hour | Depends on T3 |
 | T5 | 3T5: Error Handling | 1 hour | Can run in parallel with T1-T4 |
 | T6 | 3T6: Full Suite | 2 hours | Depends on T1-T5 |

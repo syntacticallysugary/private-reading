@@ -1,0 +1,34 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored — never commit it.
+# In CI/CD these are injected as TF_VAR_* environment variables instead.
+
+# OCI identity
+oci_tenancy_ocid     = "ocid1.tenancy.oc1..example"
+oci_user_ocid        = "ocid1.user.oc1..example"
+oci_fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+oci_private_key      = <<-EOT
+  -----BEGIN RSA PRIVATE KEY-----
+  YOUR KEY CONTENT HERE
+  -----END RSA PRIVATE KEY-----
+EOT
+oci_region           = "us-ashburn-1"
+oci_compartment_ocid = "ocid1.compartment.oc1..example"
+
+# AWS identity (for Cognito app client)
+aws_region           = "us-east-1"
+
+# Cognito — ID of the User Pool managed by Know-It-All CloudFormation stack
+cognito_user_pool_id = "us-east-1_AbCdEfGhI"
+
+# Database
+db_admin_password = "ChangeMe123!"
+
+# Application
+app_name    = "private-reading"
+environment = "prod"
+
+# k3s cluster (fill in after cluster is bootstrapped)
+k8s_host                   = "https://192.168.1.x:6443"
+k8s_cluster_ca_certificate = "BASE64_ENCODED_CA_CERT"
+k8s_client_certificate     = "BASE64_ENCODED_CLIENT_CERT"
+k8s_client_key             = "BASE64_ENCODED_CLIENT_KEY"

@@ -1,4 +1,4 @@
-# myAudible User Guide
+# Private Reading User Guide
 
 ## Table of Contents
 
@@ -15,11 +15,11 @@
 
 ## Getting Started
 
-myAudible is a powerful tool for processing audio file descriptions. This guide will help you set up and use the application.
+Private Reading is a powerful tool for processing audio file descriptions. This guide will help you set up and use the application.
 
 ### Prerequisites
 
-Before using myAudible, ensure you have:
+Before using Private Reading, ensure you have:
 
 - Python 3.10+ installed
 - pip (Python package manager)
@@ -60,7 +60,7 @@ This installs all required packages:
 - structlog
 - pytest and testing tools
 
-### Step 3: Install myAudible
+### Step 3: Install Private Reading
 
 ```bash
 pip install -e .
@@ -120,10 +120,10 @@ Create `config/settings.json`:
 
 ```bash
 # Process a single file
-python -m myaudible --input input.md --output output.json
+python -m private_reading --input input.md --output output.json
 
 # Process from current directory
-python -m myaudible --input document.md
+python -m private_reading --input document.md
 ```
 
 ### Programmatic Usage
@@ -131,8 +131,8 @@ python -m myaudible --input document.md
 Basic example:
 
 ```python
-from myaudible import app as myaudible
-from myaudible.config import AppConfig
+from private_reading import app as private_reading_app
+from private_reading.config import AppConfig
 from pathlib import Path
 
 # Initialize configuration
@@ -146,7 +146,7 @@ config = AppConfig(
 )
 
 # Create application instance
-app_instance = myaudible.MyAudibleApp(config)
+app_instance = private_reading.PrivateReadingApp(config)
 
 # Process a file
 result = await app_instance.process_single_file(Path("document.md"))
@@ -162,7 +162,7 @@ print(f"Chunks created: {len(result.chunks)}")
 
 ### Understanding the Pipeline
 
-myAudible processes files through a series of steps:
+Private Reading processes files through a series of steps:
 
 ```
 ┌─────────────────┐
@@ -192,7 +192,7 @@ myAudible processes files through a series of steps:
 
 #### Step 1: File Detection
 
-myAudible automatically detects the file format:
+Private Reading automatically detects the file format:
 
 - `.md` / `.markdown` → Markdown
 - `.txt` / `.text` → Plain Text
@@ -249,7 +249,7 @@ final_audio = stitcher.stitch(wav_files)
 Extract text with custom configurations:
 
 ```python
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.text_extractor import TextExtractor
 from pathlib import Path
 
 extractor = TextExtractor()
@@ -264,7 +264,7 @@ with open("document.md", "r", encoding="utf-8") as f:
 Control chunk behavior:
 
 ```python
-from myaudible.core.chunk_manager import ChunkManager, ChunkConfig
+from private_reading.core.chunk_manager import ChunkManager, ChunkConfig
 from pathlib import Path
 
 manager = ChunkManager()
@@ -281,9 +281,9 @@ chunks = await manager.chunk(text)
 ### Custom TTS Configuration
 
 ```python
-from myaudible.core.tts_client import TTSClient
-from myaudible.core.text_extractor import TextExtractor
-from myaudible.config import TTSConfig
+from private_reading.core.tts_client import TTSClient
+from private_reading.core.text_extractor import TextExtractor
+from private_reading.config import TTSConfig
 from pathlib import Path
 
 # Initialize TTS client
@@ -318,22 +318,22 @@ async with client:
 ### Basic Options
 
 ```bash
-python -m myaudible --help
+python -m private_reading --help
 # Show available CLI options
 ```
 
 ### Input Options
 
 ```bash
-python -m myaudible --input input.md               # Input file path
-python -m myaudible --input-dir ./my-documents/     # Directory as output bas
+python -m private_reading --input input.md               # Input file path
+python -m private_reading --input-dir ./my-documents/     # Directory as output bas
 ```
 
 ### Output Options
 
 ```bash
-python -m myaudible --output output.json            # Output file path
-python -m myaudible --output-dir ./output/         # Output directory
+python -m private_reading --output output.json            # Output file path
+python -m private_reading --output-dir ./output/         # Output directory
 ```
 
 ---
@@ -395,15 +395,15 @@ config = ChunkConfig(max_chars=300, overlap=50)
 
 ```python
 from pathlib import Path
-from myaudible import app as myaudible
-from myaudible.config import AppConfig
+from private_reading import app as private_reading_app
+from private_reading.config import AppConfig
 
 config = AppConfig(
     tts_api_url="https://api.qwen3.0.ai/tts",
     tts_api_key="your-api-key",
 )
 
-app_instance = myaudible.MyAudibleApp(config)
+app_instance = private_reading.PrivateReadingApp(config)
 
 async def process_file(file_path: Path) -> dict:
     """Process with error handling."""
@@ -417,7 +417,7 @@ async def process_file(file_path: Path) -> dict:
 ### 2. Logging Results
 
 ```python
-from myaudible.core.output_manager import OutputManager
+from private_reading.core.output_manager import OutputManager
 from pathlib import Path
 
 output_manager = OutputManager()
@@ -436,13 +436,13 @@ with open(output_file, "r", encoding="utf-8") as f:
 ### 3. Batch Processing
 
 ```python
-from myaudible import app as myaudible
-from myaudible.config import AppConfig
+from private_reading import app as private_reading_app
+from private_reading.config import AppConfig
 from pathlib import Path
 import asyncio
 
 config = AppConfig(...)
-app_instance = myaudible.MyAudibleApp(config)
+app_instance = private_reading.PrivateReadingApp(config)
 
 async def batch_process(file_paths: list[Path]):
     """Process multiple files in sequence."""

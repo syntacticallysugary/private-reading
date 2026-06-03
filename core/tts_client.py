@@ -1,4 +1,4 @@
-"""TTS API client for myAudible.
+"""TTS API client for Private Reading.
 
 This module provides the TTSClient class for interfacing with the
 Qwen 3.0 TTS API for audio generation.
@@ -15,8 +15,8 @@ from typing import Dict, List, Optional
 
 import aiohttp
 
-from myaudible.exceptions import TTSAPIError
-from myaudible.models import VoiceConfig
+from private_reading.exceptions import TTSAPIError
+from private_reading.models import VoiceConfig
 
 
 @dataclass

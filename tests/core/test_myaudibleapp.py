@@ -1,7 +1,7 @@
-"""Standalone tests for MyAudibleApp implementation verification.
+"""Standalone tests for PrivateReadingApp implementation verification.
 
 This script verifies all 8 test objectives for Task 3T3:
-1. Verify MyAudibleApp initialization with AppConfig
+1. Verify PrivateReadingApp initialization with AppConfig
 2. Verify pipeline and job_tracker initialization
 3. Verify run() method startup flow
 4. Verify process_single_file() job lifecycle
@@ -31,13 +31,13 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from myaudible.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
-from myaudible.core.pipeline import ProcessingPipeline, ProcessingResult
-from myaudible.core.job_tracker import JobTracker
-from myaudible.app import MyAudibleApp
+from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+from private_reading.core.pipeline import ProcessingPipeline, ProcessingResult
+from private_reading.core.job_tracker import JobTracker
+from private_reading.app import PrivateReadingApp
 
 
-class TestMyAudibleAppInitialization:
+class TestPrivateReadingAppInitialization:
     """Test objectives 1-2: Initialization verification."""
 
     @pytest.fixture
@@ -60,17 +60,17 @@ class TestMyAudibleAppInitialization:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_1_app_initialization(self, app_config):
-        """Test Objective 1: Verify MyAudibleApp initialization with AppConfig.
+        """Test Objective 1: Verify PrivateReadingApp initialization with AppConfig.
 
-        Expected: MyAudibleApp should accept AppConfig and store it as self.config.
+        Expected: PrivateReadingApp should accept AppConfig and store it as self.config.
         Known Defects: D-003, D-004, D-005, D-006, D-011 affect this.
         """
-        app = MyAudibleApp(app_config)
+        app = PrivateReadingApp(app_config)
 
         # Verify config is stored
         assert app.config is not None, "Config should be stored in app"
@@ -95,7 +95,7 @@ class TestMyAudibleAppInitialization:
 
         Expected: ProcessingPipeline should be initialized, JobTracker should be None (not yet connected).
         """
-        app = MyAudibleApp(app_config)
+        app = PrivateReadingApp(app_config)
 
         # Verify pipeline is initialized
         assert app.pipeline is not None, "Pipeline should be initialized"
@@ -107,7 +107,7 @@ class TestMyAudibleAppInitialization:
         print("[PASS] Objective 2: Pipeline and JobTracker initialized correctly")
 
 
-class TestMyAudibleAppRunMethod:
+class TestPrivateReadingAppRunMethod:
     """Test objective 3: Verify run() method startup flow."""
 
     @pytest.fixture
@@ -130,8 +130,8 @@ class TestMyAudibleAppRunMethod:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_3_run_method_startup_flow(self, app_config, app_instance):
@@ -170,7 +170,7 @@ class TestMyAudibleAppRunMethod:
                                     print("  Known Defect: D-003/D-004/D-005/D-006/D-011 - config.get() or dict access issues")
 
 
-class TestMyAudibleAppProcessSingleFile:
+class TestPrivateReadingAppProcessSingleFile:
     """Test objective 4: Verify process_single_file() job lifecycle."""
 
     @pytest.fixture
@@ -193,8 +193,8 @@ class TestMyAudibleAppProcessSingleFile:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_4_process_single_file_job_lifecycle(self, app_config, app_instance):
@@ -233,7 +233,7 @@ class TestMyAudibleAppProcessSingleFile:
                             print("  Known Defect: D-010 - result.__dict__ passes internal fields to job result")
 
 
-class TestMyAudibleAppHealthCheck:
+class TestPrivateReadingAppHealthCheck:
     """Test objective 5: Verify health_check() returns correct structure."""
 
     @pytest.fixture
@@ -256,8 +256,8 @@ class TestMyAudibleAppHealthCheck:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_5_health_check_structure(self, app_config, app_instance):
@@ -296,7 +296,7 @@ class TestMyAudibleAppHealthCheck:
         print("[PASS] Objective 5: health_check() returns correct structure")
 
 
-class TestMyAudibleAppSignalHandlers:
+class TestPrivateReadingAppSignalHandlers:
     """Test objective 6: Verify signal handler setup."""
 
     @pytest.fixture
@@ -319,8 +319,8 @@ class TestMyAudibleAppSignalHandlers:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_6_signal_handler_setup(self, app_config, app_instance):
@@ -337,7 +337,7 @@ class TestMyAudibleAppSignalHandlers:
         print("[PASS] Objective 6: Signal handler setup verified")
 
 
-class TestMyAudibleAppParseArguments:
+class TestPrivateReadingAppParseArguments:
     """Test objective 7: Verify _parse_arguments() argument parsing."""
 
     @pytest.fixture
@@ -360,8 +360,8 @@ class TestMyAudibleAppParseArguments:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_7_parse_arguments(self, app_config, app_instance):
@@ -399,7 +399,7 @@ class TestMyAudibleAppParseArguments:
             print("  Known Defect: D-005 - config['single_file'] uses dict access on Pydantic model")
 
 
-class TestMyAudibleAppSetupLogging:
+class TestPrivateReadingAppSetupLogging:
     """Test objective 8: Verify _setup_logging() configuration."""
 
     @pytest.fixture
@@ -422,8 +422,8 @@ class TestMyAudibleAppSetupLogging:
 
     @pytest.fixture
     def app_instance(self, app_config):
-        """Create a MyAudibleApp instance."""
-        return MyAudibleApp(app_config)
+        """Create a PrivateReadingApp instance."""
+        return PrivateReadingApp(app_config)
 
     @pytest.mark.asyncio
     async def test_objective_8_setup_logging(self, app_config, app_instance):
@@ -435,7 +435,7 @@ class TestMyAudibleAppSetupLogging:
         assert hasattr(app_instance, '_setup_logging'), "Should have _setup_logging method"
 
         # Mock the setup_logging function to verify it's called correctly
-        with patch('myaudible.utils.logging.setup_logging') as mock_setup:
+        with patch('private_reading.utils.logging.setup_logging') as mock_setup:
             app_instance._setup_logging()
 
             # Verify setup_logging was called with config

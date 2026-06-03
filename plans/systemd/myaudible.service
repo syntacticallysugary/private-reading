@@ -1,21 +1,21 @@
 [Unit]
-Description=myAudible Processing Service
-After=network.target myaudible-input.path
-Requires=myaudible-input.path
+Description=Private Reading Processing Service
+After=network.target private-reading-input.path
+Requires=private-reading-input.path
 
 [Service]
 Type=simple
-User=myaudible
-Group=myaudible
-WorkingDirectory=/opt/myaudible
-ExecStart=/opt/myaudible/venv/bin/python -m myaudible.app
-EnvironmentFile=/opt/myaudible/.env
+User=private-reading
+Group=private-reading
+WorkingDirectory=/opt/private-reading
+ExecStart=/opt/private-reading/venv/bin/python -m private_reading.app
+EnvironmentFile=/opt/private-reading/.env
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
 # Logging configuration
-ExecStartPre=/bin/mkdir -p /opt/myaudible/logs
+ExecStartPre=/bin/mkdir -p /opt/private-reading/logs
 
 [Install]
 WantedBy=multi-user.target

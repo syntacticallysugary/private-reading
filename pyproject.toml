@@ -3,15 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "myaudible"
+name = "private-reading"
 version = "0.1.0"
-description = "AI-powered data pipeline that converts text documents into high-quality audio files using Qwen 3.0 TTS model"
+description = "Convert text documents into high-quality audio files using a self-hosted TTS server"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
-authors = [
-  {name = "myAudible Team", email = "team@myaudible.example.com"}
-]
+authors = []
 keywords = ["tts", "audio", "text-to-speech", "qwen", "pipeline"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -49,10 +47,10 @@ dev = [
 ]
 
 [project.scripts]
-myaudible = "myaudible.main:main"
+private-reading = "private_reading.cli:main"
 
 [project.entry-points."console_scripts"]
-myaudible = "myaudible.main:main"
+private-reading = "private_reading.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -65,7 +63,7 @@ include = "\\.pyi?$"
 [tool.isort]
 line_length = 100
 profile = "black"
-known_first_party = ["myaudible"]
+known_first_party = ["private_reading"]
 
 [tool.flake8]
 max-line-length = 100
@@ -82,4 +80,4 @@ ignore_missing_imports = true
 asyncio_mode = "auto"
 testpaths = ["tests/core", "tests/e2e", "tests/performance"]
 pythonpath = ["."]
-addopts = "-v --cov=myaudible --cov-report=term-missing"
+addopts = "-v --cov=private_reading --cov-report=term-missing"

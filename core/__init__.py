@@ -1,4 +1,4 @@
-"""Core processing modules for myAudible."""
+"""Core processing modules for Private Reading."""
 
 from .file_watcher import FileWatcher
 from .text_extractor import TextExtractor

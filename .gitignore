@@ -33,3 +33,21 @@ test_results*.txt
 # Misc
 *.md.wav
 *.wav
+*.m4a
+*.mp3
+*.ogg
+*.flac
+
+# Tool configs
+.antigravitycli/
+.gemini/
+.playwright-mcp/
+
+# Terraform — never commit state or secrets
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/backend.hcl
+terraform/errored.tfstate

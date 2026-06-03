@@ -1,4 +1,4 @@
-# myAudible API Reference
+# Private Reading API Reference
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@
 Main application configuration class that aggregates all settings.
 
 ```python
-from myaudible.config import AppConfig
+from private_reading.config import AppConfig
 from pydantic import Field
 from typing import Any, Optional
 
@@ -53,7 +53,7 @@ class AppConfig(BaseSettings):
 
 ```python
 from pathlib import Path
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.text_extractor import TextExtractor
 
 extractor = TextExtractor()
 
@@ -77,7 +77,7 @@ raw_text = await extractor.extract(file_path)  # str
 
 ```python
 from pathlib import Path
-from myaudible.core.chunk_manager import ChunkManager
+from private_reading.core.chunk_manager import ChunkManager
 
 manager = ChunkManager()
 
@@ -102,7 +102,7 @@ chunk_entries = await manager.add_silence_markers(chunks)  # List[dict]
 
 ```python
 from pathlib import Path
-from myaudible.core.audio_stitcher import AudioStitcher
+from private_reading.core.audio_stitcher import AudioStitcher
 
 stitcher = AudioStitcher()
 
@@ -123,7 +123,7 @@ result_path = await stitcher.stitch(wav_files)  # Path
 ### `TTSClient`
 
 ```python
-from myaudible.core.tts_client import TTSClient
+from private_reading.core.tts_client import TTSClient
 
 client = TTSClient(
     api_url="...",
@@ -159,7 +159,7 @@ async with client:
 ### `ProcessingResult`
 
 ```python
-from myaudible.models import ProcessingResult
+from private_reading.models import ProcessingResult
 
 result = await process_file(file_path)
 result.file_path      # Path
@@ -182,7 +182,7 @@ result.chunk_entries  # List[dict]
 ### `Job`
 
 ```python
-from myaudible.models import Job
+from private_reading.models import Job
 
 job = Job(file_path="input.md", priority=1)
 ```
@@ -200,7 +200,7 @@ job = Job(file_path="input.md", priority=1)
 ### `ProcessingStats`
 
 ```python
-from myaudible.models import ProcessingStats
+from private_reading.models import ProcessingStats
 
 stats = ProcessingStats(
     total_files=10,
@@ -225,21 +225,21 @@ stats = ProcessingStats(
 
 ## Application API
 
-### `MyAudibleApp`
+### `PrivateReadingApp`
 
 ```python
-from myaudible import app
-from myaudible.config import AppConfig
+from private_reading import app
+from private_reading.config import AppConfig
 
 config = AppConfig(...)
-application = app.MyAudibleApp(config)
+application = app.PrivateReadingApp(config)
 ```
 
 #### Methods
 
 | Method | Async | Description | Return Type |
 |--------|-------|-------------|-------------|
-| `__init__(config)` | No | Initialize application | `MyAudibleApp` |
+| `__init__(config)` | No | Initialize application | `PrivateReadingApp` |
 | `run()` | Yes | Main application loop | `None` |
 | `_main_loop()` | Yes | Application main logic | `None` |
 | `process_single_file(file_path)` | Yes | Process one file | `ProcessingResult` |
@@ -255,35 +255,35 @@ application = app.MyAudibleApp(config)
 ### `FileNotFoundError`
 
 ```python
-from myaudible.exceptions import FileNotFoundError
+from private_reading.exceptions import FileNotFoundError
 # Raised when file is not found during processing
 ```
 
 ### `ProcessCompleteException`
 
 ```python
-from myaudible.exceptions import ProcessCompleteException
+from private_reading.exceptions import ProcessCompleteException
 # Normal exit condition from process_workflow()
 ```
 
 ### `NoInputException`
 
 ```python
-from myaudible.exceptions import NoInputException
+from private_reading.exceptions import NoInputException
 # Raised when no input is provided
 ```
 
 ### `TTSClientError`
 
 ```python
-from myaudible.exceptions import TTSClientError
+from private_reading.exceptions import TTSClientError
 # High level TTS error handling
 ```
 
 ### `ChunkConfigError`
 
 ```python
-from myaudible.exceptions import ChunkConfigError
+from private_reading.exceptions import ChunkConfigError
 # Raised when chunk configuration is invalid
 ```
 
@@ -294,7 +294,7 @@ from myaudible.exceptions import ChunkConfigError
 ### Text Extraction
 
 ```python
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.text_extractor import TextExtractor
 from pathlib import Path
 
 extractor = TextExtractor()
@@ -305,8 +305,8 @@ print(f"Extracted {len(result)} characters")
 ### Text Chunking
 
 ```python
-from myaudible.core.chunk_manager import ChunkManager
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.chunk_manager import ChunkManager
+from private_reading.core.text_extractor import TextExtractor
 
 extractor = TextExtractor()
 manager = ChunkManager()
@@ -319,8 +319,8 @@ print(f"Created {len(chunks)} chunks")
 ### TTS Generation
 
 ```python
-from myaudible.core.tts_client import TTSClient
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.tts_client import TTSClient
+from private_reading.core.text_extractor import TextExtractor
 
 extractor = TextExtractor()
 client = TTSClient(...)
@@ -335,8 +335,8 @@ audio_path = await client.generate_speech(
 ### Full Pipeline
 
 ```python
-from myaudible import app
-from myaudible.config import AppConfig
+from private_reading import app
+from private_reading.config import AppConfig
 
 config = AppConfig(
     tts_api_url="https://api.qwen3.0.ai/tts",
@@ -344,7 +344,7 @@ config = AppConfig(
     tts_api_voice_desig="coral",
 )
 
-application = app.MyAudibleApp(config)
+application = app.PrivateReadingApp(config)
 
 result = await application.process_single_file(Path("input.md"))
 ```
@@ -357,7 +357,7 @@ result = await application.process_single_file(Path("input.md"))
 
 ```python
 # tests/core/test_text_extractor.py
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.core.text_extractor import TextExtractor
 import pytest
 
 @pytest.mark.asyncio
@@ -372,12 +372,12 @@ async def test_extract_markdown():
 
 ```python
 # tests/e2e/test_end_to_end.py
-from myaudible import app
-from myaudible.config import AppConfig
+from private_reading import app
+from private_reading.config import AppConfig
 
 async def test_full_pipeline():
     config = AppConfig(...)
-    application = app.MyAudibleApp(config)
+    application = app.PrivateReadingApp(config)
     
     result = await application.process_single_file(
         Path("sample_document.md")

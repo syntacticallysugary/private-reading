@@ -1,6 +1,6 @@
-"""Application entry point for myAudible.
+"""Application entry point for Private Reading.
 
-This module provides the CLI entry point for the myAudible application.
+This module provides the CLI entry point for the Private Reading application.
 """
 
 from __future__ import annotations
@@ -9,11 +9,11 @@ import asyncio
 import sys
 from pathlib import Path
 
-from myaudible.app import App
+from private_reading.app import App
 
 
 def main() -> int:
-    """Main entry point for myAudible CLI.
+    """Main entry point for Private Reading CLI.
 
     Returns:
         Exit code (0 for success, non-zero for failure).

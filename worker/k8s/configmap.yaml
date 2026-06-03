@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: private-reading-worker-config
+  namespace: private-reading
+data:
+  API_BASE_URL: "https://o35eybtgc6wg5jujhe5xeixioe.apigateway.us-chicago-1.oci.customer-oci.com/v1"
+  AUDIOBOOKS_BUCKET: "private-reading-prod-audiobooks"
+  OCI_NAMESPACE: "axwer8ojpvgx"
+  OCI_REGION: "us-chicago-1"
+  TTS_ENDPOINT: "http://192.168.1.104:8014/v1/audio/speech"
+  TTS_PROVIDER: "qwen"
+  TTS_MODEL: "qwen3-tts-base"
+  TTS_TIMEOUT_SECONDS: "450"
+  TTS_RETRY_ATTEMPTS: "2"
+  SEMAPHORE_SIZE: "1"
+  PROCESSING_CHUNK_SIZE: "400"

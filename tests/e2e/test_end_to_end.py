@@ -1,4 +1,4 @@
-"""End-to-end integration tests for myAudible."""
+"""End-to-end integration tests for Private Reading."""
 
 import asyncio
 import json
@@ -12,8 +12,8 @@ import os
 # Insert the project root (3 levels up from tests/e2e/) so `core` is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from myaudible import app as myaudible_app
-from myaudible.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+from private_reading import app as private_reading_app
+from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def sample_markdown_file(tmp_path):
     """Create a sample markdown file for testing."""
     markdown_content = """# Test Document
 
-This is a sample document for testing the myAudible pipeline.
+This is a sample document for testing the Private Reading pipeline.
 
 ## Introduction
 
@@ -71,8 +71,8 @@ This paragraph has special characters.
 
 @pytest.fixture
 def integrator(app_config):
-    """Create a MyAudibleApp instance for integration tests."""
-    return myaudible_app.MyAudibleApp(app_config)
+    """Create a PrivateReadingApp instance for integration tests."""
+    return private_reading_app.PrivateReadingApp(app_config)
 
 
 async def test_full_pipeline_markdown(integrator, sample_markdown_file):
@@ -124,7 +124,7 @@ async def test_long_document_chunking(app_config, tmp_path):
     long_file = tmp_path / "long_document.md"
     long_file.write_text(content)
 
-    app = myaudible_app.MyAudibleApp(app_config)
+    app = private_reading_app.PrivateReadingApp(app_config)
     result = await app.process_single_file(long_file)
 
     assert result is not None

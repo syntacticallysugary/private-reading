@@ -5,8 +5,8 @@ from pathlib import Path
 import tempfile
 import os
 
-from myaudible.exceptions import TextExtractionError, UnsupportedFormatError
-from myaudible.core.text_extractor import TextExtractor
+from private_reading.exceptions import TextExtractionError, UnsupportedFormatError
+from private_reading.core.text_extractor import TextExtractor
 
 
 class TestTextExtractor:

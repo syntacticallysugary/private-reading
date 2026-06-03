@@ -1,4 +1,4 @@
-"""Performance tests for myAudible."""
+"""Performance tests for Private Reading."""
 
 import time
 import pytest
@@ -9,8 +9,8 @@ import sys
 # Insert the project root (3 levels up from tests/performance/) so `core` is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from myaudible import app as myaudible_app
-from myaudible.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+from private_reading import app as private_reading_app
+from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
 
 
 @pytest.fixture
@@ -28,8 +28,8 @@ def app_config(tmp_path):
 
 @pytest.fixture
 def benchmark_app(app_config):
-    """Create a MyAudibleApp instance for benchmarking."""
-    return myaudible_app.MyAudibleApp(app_config)
+    """Create a PrivateReadingApp instance for benchmarking."""
+    return private_reading_app.PrivateReadingApp(app_config)
 
 
 @pytest.mark.benchmark
@@ -66,7 +66,7 @@ async def test_txt_processing_time(benchmark_app, tmp_path):
 
 async def test_multiple_file_processing(app_config, tmp_path):
     """Benchmark processing multiple files in sequence."""
-    app = myaudible_app.MyAudibleApp(app_config)
+    app = private_reading_app.PrivateReadingApp(app_config)
 
     for i in range(3):
         (tmp_path / f"doc{i}.md").write_text(
@@ -87,7 +87,7 @@ async def test_multiple_file_processing(app_config, tmp_path):
 
 async def test_chunk_manager_performance():
     """Benchmark chunk manager with different document sizes."""
-    from myaudible.core.chunk_manager import ChunkManager
+    from private_reading.core.chunk_manager import ChunkManager
 
     manager = ChunkManager(max_chars=500)
 

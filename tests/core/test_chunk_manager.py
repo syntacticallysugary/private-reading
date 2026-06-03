@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from myaudible.core.chunk_manager import ChunkManager, ChunkConfig
+from private_reading.core.chunk_manager import ChunkManager, ChunkConfig
 
 
 class TestChunkManager:

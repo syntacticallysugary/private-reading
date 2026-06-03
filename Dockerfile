@@ -7,7 +7,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Dedicated non-root user
-RUN useradd -r -u 1000 -s /bin/false myaudible
+RUN useradd -r -u 1000 -s /bin/false private-reading
 
 WORKDIR /app
 
@@ -20,11 +20,11 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 # Mount points for host-side input/output directories
-RUN mkdir -p /input /output && chown myaudible:myaudible /input /output
+RUN mkdir -p /input /output && chown private-reading:private-reading /input /output
 
-USER myaudible
+USER private-reading
 
 ENV PYTHONUNBUFFERED=1
 
 # Watch mode: inotify fires on every file written/moved into /input
-CMD ["python", "-m", "myaudible", "-i", "/input", "-o", "/output", "-w"]
+CMD ["python", "-m", "private_reading", "-i", "/input", "-o", "/output", "-w"]

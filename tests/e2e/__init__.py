@@ -1,1 +1,1 @@
-"""End-to-end tests for myAudible."""
+"""End-to-end tests for Private Reading."""

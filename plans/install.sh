@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# myAudible Installation Script
+# Private Reading Installation Script
 # =============================
 # 
-# This script installs myAudible for system-level operation as a systemd service.
+# This script installs Private Reading for system-level operation as a systemd service.
 # It creates the necessary directory structure, sets up the virtual environment,
 # installs dependencies, and configures the systemd service.
 #
@@ -29,10 +29,10 @@
 set -e  # Exit on any error
 
 # Configuration
-INSTALL_DIR="/opt/myaudible"
+INSTALL_DIR="/opt/private-reading"
 VENV_DIR="${INSTALL_DIR}/venv"
 PYTHON_VERSION="3.11"
-SERVICE_NAME="myaudible.service"
+SERVICE_NAME="private-reading.service"
 INPUT_DIR="${INSTALL_DIR}/input"
 OUTPUT_DIR="${INSTALL_DIR}/output"
 PROCESSED_DIR="${INSTALL_DIR}/processed"
@@ -123,8 +123,8 @@ create_venv() {
 copy_systemd_files() {
     log_info "Copying systemd service files to /etc/systemd/system/..."
     
-    local service_file="${INSTALL_DIR}/plans/systemd/myaudible.service"
-    local path_file="${INSTALL_DIR}/plans/systemd/myaudible-input.path"
+    local service_file="${INSTALL_DIR}/plans/systemd/private-reading.service"
+    local path_file="${INSTALL_DIR}/plans/systemd/private-reading-input.path"
     
     if [[ -f "${service_file}" ]]; then
         cp "${service_file}" /etc/systemd/system/${SERVICE_NAME}
@@ -135,8 +135,8 @@ copy_systemd_files() {
     fi
     
     if [[ -f "${path_file}" ]]; then
-        cp "${path_file}" /etc/systemd/system/myaudible-input.path
-        log_info "Socket file copied: myaudible-input.path"
+        cp "${path_file}" /etc/systemd/system/private-reading-input.path
+        log_info "Socket file copied: private-reading-input.path"
     else
         log_warn "Socket file not found: ${path_file} (optional)"
     fi
@@ -152,7 +152,7 @@ reload_systemd() {
 
 # Enable the service
 enable_service() {
-    log_info "Enabling myAudible service..."
+    log_info "Enabling Private Reading service..."
     systemctl enable "${SERVICE_NAME}" || {
         log_error "Failed to enable service."
         exit 6
@@ -162,7 +162,7 @@ enable_service() {
 
 # Start the service
 start_service() {
-    log_info "Starting myAudible service..."
+    log_info "Starting Private Reading service..."
     systemctl start "${SERVICE_NAME}" || {
         log_error "Failed to start service. Check logs: journalctl -u ${SERVICE_NAME}"
         exit 7
@@ -174,7 +174,7 @@ start_service() {
 show_status() {
     echo ""
     echo "========================================"
-    echo "       myAudible Installation Summary"
+    echo "       Private Reading Installation Summary"
     echo "========================================"
     echo ""
     echo "Installation Directory: ${INSTALL_DIR}"
@@ -199,7 +199,7 @@ show_status() {
 
 # Main installation function
 main() {
-    log_info "Starting myAudible installation..."
+    log_info "Starting Private Reading installation..."
     echo ""
     
     # Check for root privileges

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the implementation of a configurable `SEMAPHORE_SIZE` feature for the myaudible application. The semaphore will control the maximum number of concurrent TTS requests, with a default value of 10 (based on sweep test results) and the ability to be configured via the `.env` file.
+This document outlines the implementation of a configurable `SEMAPHORE_SIZE` feature for the Private Reading application. The semaphore will control the maximum number of concurrent TTS requests, with a default value of 10 (based on sweep test results) and the ability to be configured via the `.env` file.
 
 ## Design Decisions Confirmed
 
@@ -45,7 +45,7 @@ for i, chunk in enumerate(chunks):
 
 ### Component Changes Required
 
-#### 1. Configuration Layer (`myaudible/config.py`)
+#### 1. Configuration Layer (`private_reading/config.py`)
 
 **Add `SemaphoreConfig` class** to handle the semaphore size configuration:
 
@@ -69,7 +69,7 @@ class SemaphoreConfig(BaseSettings):
 
 **Update `AppConfig`** to include the new `semaphore` configuration.
 
-#### 2. Pipeline Layer (`myaudible/core/pipeline.py`)
+#### 2. Pipeline Layer (`private_reading/core/pipeline.py`)
 
 **Update `ProcessingPipeline.__init__()`** to create the semaphore from config:
 
@@ -97,7 +97,7 @@ async with self.tts_client:
     audio_chunks = await asyncio.gather(*(process_chunk(chunk) for chunk in chunks))
 ```
 
-#### 3. CLI Layer (`myaudible/cli.py`)
+#### 3. CLI Layer (`private_reading/cli.py`)
 
 **Add command-line override** for `--semaphore-size` to allow runtime configuration.
 
@@ -141,7 +141,7 @@ graph TD
 ## Implementation Steps
 
 ### Phase 1: Configuration Changes
-1. Add `SemaphoreConfig` to `myaudible/config.py` with validation
+1. Add `SemaphoreConfig` to `private_reading/config.py` with validation
 2. Update `AppConfig` to include semaphore configuration
 3. Add `SEMAPHORE_SIZE` to `.env` and `.env.example`
 
@@ -217,11 +217,11 @@ graph TD
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `myaudible/config.py` | Add | `SemaphoreConfig` class with validation |
-| `myaudible/config.py` | Modify | Integrate `semaphore` into `AppConfig` |
-| `myaudible/core/pipeline.py` | Modify | Create `asyncio.Semaphore` in `__init__()` |
-| `myaudible/core/pipeline.py` | Modify | Refactor `process_file()` for concurrent TTS |
-| `myaudible/cli.py` | Modify | Add `--semaphore-size` argument |
-| `myaudible/cli.py` | Modify | Update `build_config()` to pass semaphore size |
+| `private_reading/config.py` | Add | `SemaphoreConfig` class with validation |
+| `private_reading/config.py` | Modify | Integrate `semaphore` into `AppConfig` |
+| `private_reading/core/pipeline.py` | Modify | Create `asyncio.Semaphore` in `__init__()` |
+| `private_reading/core/pipeline.py` | Modify | Refactor `process_file()` for concurrent TTS |
+| `private_reading/cli.py` | Modify | Add `--semaphore-size` argument |
+| `private_reading/cli.py` | Modify | Update `build_config()` to pass semaphore size |
 | `.env` | Add | `SEMAPHORE_SIZE=10` |
 | `.env.example` | Add | `SEMAPHORE_SIZE=10` with documentation |

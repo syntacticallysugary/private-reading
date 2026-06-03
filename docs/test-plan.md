@@ -1,4 +1,4 @@
-# myAudible - Test Plan
+# Private Reading - Test Plan
 
 ## Document Information
 
@@ -27,7 +27,7 @@
 
 ## 1. Executive Summary
 
-This test plan defines the comprehensive quality assurance strategy for the myAudible project - an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using the Qwen 3.0 TTS model.
+This test plan defines the comprehensive quality assurance strategy for the Private Reading project - an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using the Qwen 3.0 TTS model.
 
 ### 1.1 Testing Philosophy
 
@@ -315,13 +315,13 @@ def mock_tts_response():
 @pytest.fixture
 def text_extractor(mock_config):
     """Provide a configured TextExtractor instance."""
-    from myaudible.core.text_extractor import TextExtractor
+    from private_reading.core.text_extractor import TextExtractor
     return TextExtractor()
 
 @pytest.fixture
 def chunk_manager(mock_config):
     """Provide a configured ChunkManager instance."""
-    from myaudible.core.chunk_manager import ChunkManager
+    from private_reading.core.chunk_manager import ChunkManager
     return ChunkManager(
         max_chars=mock_config.processing.chunk_max_chars,
         overlap_ratio=mock_config.processing.chunk_overlap_ratio
@@ -330,7 +330,7 @@ def chunk_manager(mock_config):
 @pytest.fixture
 def tts_client(mock_config):
     """Provide a configured TTSClient instance."""
-    from myaudible.core.tts_client import TTSClient
+    from private_reading.core.tts_client import TTSClient
     return TTSClient(
         endpoint=mock_config.tts.endpoint,
         retry_attempts=mock_config.tts.retry_attempts
@@ -339,13 +339,13 @@ def tts_client(mock_config):
 @pytest.fixture
 def audio_stitcher():
     """Provide an AudioStitcher instance."""
-    from myaudible.core.audio_stitcher import AudioStitcher
+    from private_reading.core.audio_stitcher import AudioStitcher
     return AudioStitcher()
 
 @pytest.fixture
 def output_manager(temp_dir, mock_config):
     """Provide a configured OutputManager instance."""
-    from myaudible.core.output_manager import OutputManager
+    from private_reading.core.output_manager import OutputManager
     return OutputManager(
         output_dir=temp_dir / "output",
         processed_dir=temp_dir / "processed"
@@ -871,8 +871,8 @@ class TestThroughput:
 # tests/security/test_input_validation.py
 import pytest
 from pathlib import Path
-from myaudible.core.text_extractor import TextExtractor
-from myaudible.exceptions import UnsupportedFormatError
+from private_reading.core.text_extractor import TextExtractor
+from private_reading.exceptions import UnsupportedFormatError
 
 class TestInputValidation:
     @pytest.fixture
@@ -933,7 +933,7 @@ pip install pydantic pydantic-settings structlog
 
 ```bash
 # .env.test
-MYAUDIBLE_TTS_ENDPOINT=http://localhost:8008/v1/audio/speech
+APP_TTS_ENDPOINT=http://localhost:8008/v1/audio/speech
 MYAUDABLE_PROCESSING_INPUT_DIR=/tmp/test-input
 MYAUDABLE_PROCESSING_OUTPUT_DIR=/tmp/test-output
 MYAUDABLE_PROCESSING_PROCESSED_DIR=/tmp/test-processed
@@ -959,7 +959,7 @@ pytest tests/integration/ -v
 pytest tests/e2e/ -v
 
 # Run with coverage
-pytest tests/ --cov=myaudible --cov-report=html --cov-report=term-missing
+pytest tests/ --cov=private_reading --cov-report=html --cov-report=term-missing
 
 # Run performance tests
 pytest tests/performance/ -v --benchmark-save=results
@@ -998,7 +998,7 @@ jobs:
           pip install -r requirements-test.txt
       
       - name: Run unit tests
-        run: pytest tests/unit/ -v --cov=myaudible --cov-report=xml
+        run: pytest tests/unit/ -v --cov=private_reading --cov-report=xml
       
       - name: Run integration tests
         run: pytest tests/integration/ -v

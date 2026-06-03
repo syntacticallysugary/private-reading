@@ -1,4 +1,4 @@
-"""CLI interface tests for myAudible (Task 3T4)."""
+"""CLI interface tests for Private Reading (Task 3T4)."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from myaudible.cli import create_argument_parser, validate_inputs, build_config
-from myaudible.core.chunk_manager import MAX_CHUNK
+from private_reading.cli import create_argument_parser, validate_inputs, build_config
+from private_reading.core.chunk_manager import MAX_CHUNK
 
 
 # ---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ class TestCLISubprocess:
 
     def run_cli(self, *args, timeout=30):
         return subprocess.run(
-            [sys.executable, "-m", "myaudible", *args],
+            [sys.executable, "-m", "private_reading", *args],
             capture_output=True,
             text=True,
             timeout=timeout,

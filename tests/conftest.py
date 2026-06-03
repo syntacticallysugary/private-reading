@@ -1,4 +1,4 @@
-"""Global pytest fixtures and configuration for myAudible tests."""
+"""Global pytest fixtures and configuration for Private Reading tests."""
 
 import os
 from pathlib import Path
@@ -49,7 +49,7 @@ This is a regular paragraph with some more content.
 @pytest.fixture
 def mock_config(tmp_dir):
     """Create a mock configuration object for testing."""
-    from myaudible.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+    from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
     
     config = AppConfig(
         input_dir=tmp_dir / "input",

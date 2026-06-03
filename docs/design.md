@@ -1,4 +1,4 @@
-# myAudible - Design Document
+# Private Reading - Design Document
 
 ## Document Information
 
@@ -26,7 +26,7 @@
 
 ### 1.1 Purpose
 
-The myAudible system is an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using a self-hosted Fish TTS server. The system operates as a Docker-managed service that monitors input directories and processes files asynchronously.
+The Private Reading system is an AI-powered data pipeline that converts text documents (.md, .pdf, .txt, .docx) into high-quality audio files using a self-hosted Fish TTS server. The system operates as a Docker-managed service that monitors input directories and processes files asynchronously.
 
 ### 1.2 Scope
 
@@ -52,14 +52,14 @@ The myAudible system is an AI-powered data pipeline that converts text documents
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         SYSTEMD MANAGER                               │
 │  ┌─────────────────────┐    ┌─────────────────────┐                  │
-│  │ myaudible-input.path│    │ myaudible.service   │                  │
+│  │ private-reading-input.path│    │ private_reading.service   │                  │
 │  │ (File Monitor)      │───▶│ (Processing Logic)  │                  │
 │  └─────────────────────┘    └─────────────────────┘                  │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         myAUDIBLE APPLICATION                        │
+│                         PRIVATE READING APPLICATION                        │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │
 │  │  FileWatcher    │  │  TextProcessor  │  │  ChunkManager       │  │
 │  │  (inotify)      │──▶│  (Extractor)    │──▶│  (semchunk)         │  │
@@ -774,7 +774,7 @@ class AppConfig(BaseSettings):
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     
     class Config:
-        env_prefix = "MYAUDIBLE_"
+        env_prefix = "APP_"
         env_file = ".env"
 ```
 
@@ -801,27 +801,27 @@ class AppConfig(BaseSettings):
 ### 8.1 Custom Exceptions
 
 ```python
-class MyAudibleError(Exception):
-    """Base exception for myAudible errors."""
+class PrivateReadingError(Exception):
+    """Base exception for Private Reading errors."""
     pass
 
-class UnsupportedFormatError(MyAudibleError):
+class UnsupportedFormatError(PrivateReadingError):
     """Raised when file format is not supported."""
     pass
 
-class TextExtractionError(MyAudibleError):
+class TextExtractionError(PrivateReadingError):
     """Raised when text extraction fails."""
     pass
 
-class TTSAPIError(MyAudibleError):
+class TTSAPIError(PrivateReadingError):
     """Raised when TTS API call fails."""
     pass
 
-class AudioProcessingError(MyAudibleError):
+class AudioProcessingError(PrivateReadingError):
     """Raised when audio processing fails."""
     pass
 
-class ConfigurationError(MyAudibleError):
+class ConfigurationError(PrivateReadingError):
     """Raised when configuration is invalid."""
     pass
 ```
@@ -931,16 +931,16 @@ def sanitize_text(text: str) -> str:
 
 ### 10.1 Systemd Configuration
 
-**myaudible-input.path**:
+**private-reading-input.path**:
 ```ini
 [Unit]
-Description=myAudible Input Directory Monitor
+Description=Private Reading Input Directory Monitor
 After=network.target
 
 [Path]
 PathExists=/input
 DirectoryMode=0755
-Unit=myaudible.service
+Unit=private_reading.service
 
 [Install]
 WantedBy=multi-user.target
@@ -949,17 +949,17 @@ WantedBy=multi-user.target
 **myaudble.service**:
 ```ini
 [Unit]
-Description=myAudible Processing Service
-After=network.target myaudible-input.path
-Requires=myaudible-input.path
+Description=Private Reading Processing Service
+After=network.target private-reading-input.path
+Requires=private-reading-input.path
 
 [Service]
 Type=simple
-User=myaudible
-Group=myaudible
-WorkingDirectory=/opt/myaudible
-ExecStart=/opt/myaudible/venv/bin/python -m myaudible.app
-EnvironmentFile=/opt/myaudible/.env
+User=private-reading
+Group=private-reading
+WorkingDirectory=/opt/private-reading
+ExecStart=/opt/private_reading/venv/bin/python -m private_reading.app
+EnvironmentFile=/opt/private-reading/.env
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -976,9 +976,9 @@ WantedBy=multi-user.target
 ### 10.2 Directory Structure
 
 ```
-/opt/myaudible/
+/opt/private-reading/
 ├── venv/                          # Python virtual environment
-├── myaudible/                     # Application package
+├── private_reading/                 # Application package
 │   ├── __init__.py
 │   ├── app.py                     # Main application entry
 │   ├── main.py                    # Async entry point
@@ -1009,17 +1009,17 @@ WantedBy=multi-user.target
 
 set -e
 
-INSTALL_DIR="/opt/myaudible"
+INSTALL_DIR="/opt/private-reading"
 PYTHON_VERSION="3.11"
 
 # Create user
-if ! id -u myaudible >/dev/null 2>&1; then
-    useradd -r -s /bin/false myaudible
+if ! id -u private-reading >/dev/null 2>&1; then
+    useradd -r -s /bin/bash private-reading
 fi
 
 # Create directories
 mkdir -p $INSTALL_DIR/{input,output,processed,logs,temp}
-chown -R myaudible:myaudible $INSTALL_DIR
+chown -R private-reading:private-reading $INSTALL_DIR
 
 # Create virtual environment
 cd $INSTALL_DIR
@@ -1028,15 +1028,15 @@ python$PYTHON_VERSION -m venv venv
 ./venv/bin/pip install -r requirements.txt
 
 # Install systemd services
-cp myaudible*.path /etc/systemd/system/
-cp myaudible.service /etc/systemd/system/
+cp private-reading*.path /etc/systemd/system/
+cp private_reading.service /etc/systemd/system/
 systemctl daemon-reload
 
 # Enable and start
 systemctl enable myaudble-input.path
-systemctl start myaudible-input.path
+systemctl start private-reading-input.path
 
-echo "myAudible installed successfully!"
+echo "Private Reading installed successfully!"
 ```
 
 ---

@@ -13,15 +13,15 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from myaudible.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
-from myaudible.core.pipeline import ProcessingPipeline, ProcessingResult, PipelineStatus
-from myaudible.core.text_extractor import TextExtractor
-from myaudible.core.chunk_manager import ChunkManager, MAX_CHUNK
-from myaudible.core.tts_client import TTSClient
-from myaudible.core.audio_stitcher import AudioStitcher
-from myaudible.core.output_manager import OutputManager
-from myaudible.core.job_tracker import JobTracker
-from myaudible.exceptions import (
+from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+from private_reading.core.pipeline import ProcessingPipeline, ProcessingResult, PipelineStatus
+from private_reading.core.text_extractor import TextExtractor
+from private_reading.core.chunk_manager import ChunkManager, MAX_CHUNK
+from private_reading.core.tts_client import TTSClient
+from private_reading.core.audio_stitcher import AudioStitcher
+from private_reading.core.output_manager import OutputManager
+from private_reading.core.job_tracker import JobTracker
+from private_reading.exceptions import (
     ExtractionError,
     ChunkingError,
     TTSError,
@@ -648,7 +648,7 @@ class TestSemaphoreBehavior:
     @pytest.fixture
     def app_config(self, tmp_path):
         """Create a test AppConfig with default semaphore size."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
         return AppConfig(
             input_dir=tmp_path / "input",
             output_dir=tmp_path / "output",
@@ -668,8 +668,8 @@ class TestSemaphoreBehavior:
     @pytest.mark.asyncio
     async def test_semaphore_size_1(self, tmp_path):
         """Test that semaphore is initialized with size=1 (sequential processing)."""
-        from myaudible.config import SemaphoreConfig
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.config import SemaphoreConfig
+        from private_reading.core.pipeline import ProcessingPipeline
 
         config = AppConfig(
             input_dir=tmp_path / "input",
@@ -701,7 +701,7 @@ class TestSemaphoreBehavior:
     @pytest.mark.asyncio
     async def test_semaphore_size_10(self, app_config):
         """Test that semaphore is initialized with size=10 (default)."""
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.core.pipeline import ProcessingPipeline
 
         pipeline = ProcessingPipeline(app_config)
 
@@ -713,8 +713,8 @@ class TestSemaphoreBehavior:
     @pytest.mark.asyncio
     async def test_semaphore_size_50(self, tmp_path):
         """Test that semaphore is initialized with size=50 (max concurrency)."""
-        from myaudible.config import SemaphoreConfig
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.config import SemaphoreConfig
+        from private_reading.core.pipeline import ProcessingPipeline
 
         config = AppConfig(
             input_dir=tmp_path / "input",
@@ -742,8 +742,8 @@ class TestSemaphoreBehavior:
     @pytest.mark.asyncio
     async def test_semaphore_concurrency_limit(self, tmp_path):
         """Test that semaphore actually limits concurrent operations."""
-        from myaudible.config import SemaphoreConfig
-        from myaudible.core.pipeline import ProcessingPipeline
+        from private_reading.config import SemaphoreConfig
+        from private_reading.core.pipeline import ProcessingPipeline
 
         # Create pipeline with semaphore size=2
         config = AppConfig(
@@ -787,7 +787,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_invalid_semaphore_size_zero(self, tmp_path):
         """Test that semaphore size=0 raises ValueError."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         with pytest.raises(ValueError) as exc_info:
             SemaphoreConfig(size=0)
@@ -797,7 +797,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_invalid_semaphore_size_negative(self, tmp_path):
         """Test that negative semaphore size raises ValueError."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         with pytest.raises(ValueError) as exc_info:
             SemaphoreConfig(size=-1)
@@ -807,7 +807,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_invalid_semaphore_size_exceeds_max(self, tmp_path):
         """Test that semaphore size > 50 raises ValueError."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         with pytest.raises(ValueError) as exc_info:
             SemaphoreConfig(size=51)
@@ -817,7 +817,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_valid_semaphore_size_boundary_1(self, tmp_path):
         """Test that semaphore size=1 is valid (minimum)."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         # Should not raise
         config = SemaphoreConfig(size=1)
@@ -826,7 +826,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_valid_semaphore_size_boundary_50(self, tmp_path):
         """Test that semaphore size=50 is valid (maximum)."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         # Should not raise
         config = SemaphoreConfig(size=50)
@@ -835,7 +835,7 @@ class TestSemaphoreValidation:
     @pytest.mark.asyncio
     async def test_valid_semaphore_size_middle(self, tmp_path):
         """Test that a valid middle value like 25 is accepted."""
-        from myaudible.config import SemaphoreConfig
+        from private_reading.config import SemaphoreConfig
 
         # Should not raise
         config = SemaphoreConfig(size=25)
@@ -852,7 +852,7 @@ class TestCLIArgumentParsing:
     def test_semaphore_size_default(self):
         """Test that default semaphore size is 10 when not specified."""
         import argparse
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
@@ -864,7 +864,7 @@ class TestCLIArgumentParsing:
     def test_semaphore_size_valid(self):
         """Test parsing valid semaphore size argument."""
         import argparse
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
@@ -875,7 +875,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_boundary_one(self):
         """Test parsing semaphore size=1."""
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
@@ -885,7 +885,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_boundary_fifty(self):
         """Test parsing semaphore size=50."""
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
@@ -895,7 +895,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_invalid_negative(self, capsys):
         """Test that CLI rejects negative semaphore size."""
-        from myaudible.cli import create_argument_parser, validate_inputs
+        from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
         
@@ -908,7 +908,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_invalid_zero(self, capsys):
         """Test that CLI rejects zero semaphore size."""
-        from myaudible.cli import create_argument_parser, validate_inputs
+        from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
         
@@ -920,7 +920,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_invalid_exceeds_max(self, capsys):
         """Test that CLI rejects semaphore size > 50."""
-        from myaudible.cli import create_argument_parser, validate_inputs
+        from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
         
@@ -932,7 +932,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_build_config(self, tmp_path, monkeypatch):
         """Test that CLI config correctly applies semaphore size."""
-        from myaudible.cli import build_config, create_argument_parser
+        from private_reading.cli import build_config, create_argument_parser
 
         parser = create_argument_parser()
         
@@ -948,7 +948,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_default_in_config(self, tmp_path, monkeypatch):
         """Test that default semaphore size (10) is applied when not overridden."""
-        from myaudible.cli import build_config, create_argument_parser
+        from private_reading.cli import build_config, create_argument_parser
 
         parser = create_argument_parser()
         
@@ -963,7 +963,7 @@ class TestCLIArgumentParsing:
 
     def test_short_sem_flag_not_supported(self, tmp_path, capsys):
         """Test that short -s flag is not supported for semaphore-size."""
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
@@ -973,7 +973,7 @@ class TestCLIArgumentParsing:
 
     def test_semaphore_size_in_help(self, capsys):
         """Test that --semaphore-size appears in help text."""
-        from myaudible.cli import create_argument_parser
+        from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
         
