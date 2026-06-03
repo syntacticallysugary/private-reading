@@ -1,8 +1,9 @@
 """Global pytest fixtures and configuration for Private Reading tests."""
 
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
 import pytest
 
 
@@ -49,8 +50,8 @@ This is a regular paragraph with some more content.
 @pytest.fixture
 def mock_config(tmp_dir):
     """Create a mock configuration object for testing."""
-    from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
-    
+    from private_reading.config import AppConfig, LoggingConfig, ProcessingConfig, TTSConfig
+
     config = AppConfig(
         input_dir=tmp_dir / "input",
         output_dir=tmp_dir / "output",
@@ -72,41 +73,45 @@ def mock_config(tmp_dir):
 @pytest.fixture
 def sample_file(tmp_dir):
     """Helper to create a temporary test file."""
+
     def _create_file(suffix=".txt", content=""):
         file_path = tmp_dir / f"sample{suffix}"
         file_path.write_text(content, encoding="utf-8")
         return file_path
-    
+
     return _create_file
 
 
 @pytest.fixture
 def sample_pdf_file(tmp_dir):
     """Helper to create a sample PDF file for testing."""
+
     def _create_pdf():
         import os
+
         # Create a minimal PDF for testing
         # In real tests, this would use a real PDF file
         pdf_path = tmp_dir / "sample.pdf"
         # For now, create an empty file - actual PDF tests would use real PDFs
         pdf_path.touch()
         return pdf_path
-    
+
     return _create_pdf
 
 
 @pytest.fixture
 def sample_docx_file(tmp_dir):
     """Helper to create a sample DOCX file for testing."""
+
     def _create_docx():
         from docx import Document
-        
+
         doc = Document()
         doc.add_paragraph("This is a sample Word document paragraph.")
         doc.add_paragraph("This is another paragraph for testing.")
-        
+
         docx_path = tmp_dir / "sample.docx"
         doc.save(docx_path)
         return docx_path
-    
+
     return _create_docx

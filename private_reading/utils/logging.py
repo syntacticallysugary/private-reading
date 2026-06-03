@@ -7,8 +7,9 @@ structured, JSON-formatted log output.
 from __future__ import annotations
 
 import logging
-import structlog
 from pathlib import Path
+
+import structlog
 
 from private_reading.config import AppConfig
 

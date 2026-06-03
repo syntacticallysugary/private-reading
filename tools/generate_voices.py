@@ -1,8 +1,9 @@
 """Generate 12 audition voice samples via Qwen3-TTS-VoiceDesign."""
 
 import asyncio
-import aiohttp
 from pathlib import Path
+
+import aiohttp
 
 ENDPOINT = "http://localhost:8008/v1/audio/speech"
 OUTPUT_DIR = Path("/home/jimbob/Dev/myaudible/tools/voice_samples")
@@ -15,16 +16,40 @@ SAMPLE_TEXT = (
 )
 
 VOICES = [
-    ("m-relaxed",     "A man with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone"),
-    ("f-relaxed",     "A woman with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone"),
-    ("m-intimate",    "A man with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener"),
-    ("f-intimate",    "A woman with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener"),
-    ("m-calm",        "A man with a calm and grounded voice, steady and reassuring, clear and composed"),
-    ("f-calm",        "A woman with a calm and grounded voice, steady and reassuring, clear and composed"),
-    ("m-energetic",   "A man with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention"),
-    ("f-energetic",   "A woman with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention"),
-    ("m-enthusiastic","A man with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content"),
-    ("f-enthusiastic","A woman with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content"),
+    (
+        "m-relaxed",
+        "A man with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone",
+    ),
+    (
+        "f-relaxed",
+        "A woman with a low-key and relaxed voice, unhurried and easy to listen to, with a natural conversational tone",
+    ),
+    (
+        "m-intimate",
+        "A man with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener",
+    ),
+    (
+        "f-intimate",
+        "A woman with an intimate and empathetic voice, warm and personal, as if speaking directly to the listener",
+    ),
+    ("m-calm", "A man with a calm and grounded voice, steady and reassuring, clear and composed"),
+    ("f-calm", "A woman with a calm and grounded voice, steady and reassuring, clear and composed"),
+    (
+        "m-energetic",
+        "A man with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention",
+    ),
+    (
+        "f-energetic",
+        "A woman with an energetic and engaging voice, dynamic and expressive, keeping the listener's attention",
+    ),
+    (
+        "m-enthusiastic",
+        "A man with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content",
+    ),
+    (
+        "f-enthusiastic",
+        "A woman with an enthusiastic and friendly voice, upbeat and warm, genuinely excited about the content",
+    ),
 ]
 
 

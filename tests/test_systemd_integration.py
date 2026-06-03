@@ -8,8 +8,9 @@ verify that the required files exist and have valid syntax/structure.
 Run with: pytest tests/test_systemd_integration.py
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 class TestSystemdIntegration:
@@ -81,12 +82,15 @@ class TestSystemdIntegration:
         content = self.INSTALL_SCRIPT.read_text()
 
         # Check for references to key directories
-        assert "INPUT_DIR" in content or "input" in content.lower(), \
-            "Install script should reference input directory"
-        assert "OUTPUT_DIR" in content or "output" in content.lower(), \
-            "Install script should reference output directory"
-        assert "PROCESSED_DIR" in content or "processed" in content.lower(), \
-            "Install script should reference processed directory"
+        assert (
+            "INPUT_DIR" in content or "input" in content.lower()
+        ), "Install script should reference input directory"
+        assert (
+            "OUTPUT_DIR" in content or "output" in content.lower()
+        ), "Install script should reference output directory"
+        assert (
+            "PROCESSED_DIR" in content or "processed" in content.lower()
+        ), "Install script should reference processed directory"
 
     def test_install_script_references_systemd(self):
         """Test that the installation script contains references to systemd service management."""
@@ -94,8 +98,7 @@ class TestSystemdIntegration:
 
         # Check for systemd-related operations
         assert "systemctl" in content, "Install script should reference systemctl"
-        assert "systemd" in content.lower(), \
-            "Install script should reference systemd"
+        assert "systemd" in content.lower(), "Install script should reference systemd"
 
     def test_env_template_has_required_variables(self):
         """Test that the environment template contains all required variables."""

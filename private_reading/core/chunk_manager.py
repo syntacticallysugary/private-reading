@@ -56,29 +56,29 @@ class ChunkManager:
     def _clean(text: str) -> str:
         """Remove PDF artifacts that produce garbled TTS output."""
         # Inline citation brackets: [1], [1, 2], [1–3]
-        text = re.sub(r'\s*\[\s*\d+(?:\s*[,–\-]\s*\d+)*\s*\]', '', text)
+        text = re.sub(r"\s*\[\s*\d+(?:\s*[,–\-]\s*\d+)*\s*\]", "", text)
         # arXiv / DOI identifiers and general URLs
-        text = re.sub(r'\barXiv:\S+', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'\bdoi:\S+', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'https?://\S+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r"\barXiv:\S+", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bdoi:\S+", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"https?://\S+", "", text, flags=re.IGNORECASE)
         # Footnote / symbol markers inline (∗ † ‡ § ¶)
-        text = re.sub(r'[∗†‡§¶]+', '', text)
+        text = re.sub(r"[∗†‡§¶]+", "", text)
         # Lines that are clearly metadata (short, no sentence-ending punctuation,
         # contain telltale tokens like "Preprint", "Corresponding author", "et al.")
         cleaned_lines = []
         for line in text.splitlines():
             stripped = line.strip()
             if re.match(
-                r'^(preprint\.?|corresponding author|received:|accepted:|published:|'
-                r'doi|arxiv|©|\d{4}\s+[a-z]|figure\s+\d|table\s+\d)$',
+                r"^(preprint\.?|corresponding author|received:|accepted:|published:|"
+                r"doi|arxiv|©|\d{4}\s+[a-z]|figure\s+\d|table\s+\d)$",
                 stripped,
                 re.IGNORECASE,
             ):
                 continue
             cleaned_lines.append(line)
-        text = '\n'.join(cleaned_lines)
+        text = "\n".join(cleaned_lines)
         # Collapse runs of whitespace left behind
-        text = re.sub(r'[ \t]{2,}', ' ', text)
+        text = re.sub(r"[ \t]{2,}", " ", text)
         return text.strip()
 
     async def chunk(self, text: str) -> List[str]:
@@ -96,7 +96,7 @@ class ChunkManager:
         text = self._clean(text)
 
         # Split at paragraph boundaries first, then further split long paragraphs
-        paragraphs = [p.strip() for p in re.split(r'\n\n+', text.strip()) if p.strip()]
+        paragraphs = [p.strip() for p in re.split(r"\n\n+", text.strip()) if p.strip()]
         if not paragraphs:
             return []
 
@@ -110,7 +110,7 @@ class ChunkManager:
             for para in paragraphs:
                 if len(para) > self.max_chars:
                     if current_parts:
-                        chunks.append('\n\n'.join(current_parts))
+                        chunks.append("\n\n".join(current_parts))
                         current_parts = []
                         current_len = 0
                     sub = semchunk.chunk(para, self.max_chars, len)
@@ -121,12 +121,12 @@ class ChunkManager:
                         current_parts.append(para)
                         current_len += added_len
                     else:
-                        chunks.append('\n\n'.join(current_parts))
+                        chunks.append("\n\n".join(current_parts))
                         current_parts = [para]
                         current_len = len(para)
 
             if current_parts:
-                chunks.append('\n\n'.join(current_parts))
+                chunks.append("\n\n".join(current_parts))
 
         except ImportError:
             chunks = list(paragraphs)
@@ -183,7 +183,7 @@ class ChunkManager:
             List of text chunks.
         """
         # Split by paragraph breaks
-        paragraphs = text.split('\n\n')
+        paragraphs = text.split("\n\n")
         chunks = []
 
         for para in paragraphs:
@@ -196,7 +196,7 @@ class ChunkManager:
                 # Simple character-based splitting for long paragraphs
                 chunk_size = self.max_chars
                 for i in range(0, len(para), chunk_size):
-                    chunk = para[i:i + chunk_size]
+                    chunk = para[i : i + chunk_size]
                     if chunk:
                         chunks.append(chunk)
             else:

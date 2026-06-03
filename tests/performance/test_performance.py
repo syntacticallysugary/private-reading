@@ -1,16 +1,16 @@
 """Performance tests for Private Reading."""
 
+import sys
 import time
-import pytest
 from pathlib import Path
 
-import sys
+import pytest
 
 # Insert the project root (3 levels up from tests/performance/) so `core` is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from private_reading import app as private_reading_app
-from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
+from private_reading.config import AppConfig, LoggingConfig, ProcessingConfig, TTSConfig
 
 
 @pytest.fixture

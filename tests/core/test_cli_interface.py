@@ -11,13 +11,13 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from private_reading.cli import create_argument_parser, validate_inputs, build_config
+from private_reading.cli import build_config, create_argument_parser, validate_inputs
 from private_reading.core.chunk_manager import MAX_CHUNK
-
 
 # ---------------------------------------------------------------------------
 # Argument parser structure
 # ---------------------------------------------------------------------------
+
 
 class TestArgumentParser:
 
@@ -32,8 +32,17 @@ class TestArgumentParser:
 
     def test_help_contains_optional_args(self, parser):
         help_text = parser.format_help()
-        for flag in ["-c", "--config", "--voice", "--chunk-size", "--overlap-ratio",
-                     "-v", "--verbose", "-w", "--watch"]:
+        for flag in [
+            "-c",
+            "--config",
+            "--voice",
+            "--chunk-size",
+            "--overlap-ratio",
+            "-v",
+            "--verbose",
+            "-w",
+            "--watch",
+        ]:
             assert flag in help_text, f"Missing {flag} from --help"
 
     def test_missing_all_args_exits_2(self, parser):
@@ -76,10 +85,19 @@ class TestArgumentParser:
 # Input validation
 # ---------------------------------------------------------------------------
 
+
 class TestValidateInputs:
 
-    def _make_args(self, tmp_path, input_path=None, output_path=None,
-                   chunk_size=None, overlap_ratio=None, verbose=False, watch=False):
+    def _make_args(
+        self,
+        tmp_path,
+        input_path=None,
+        output_path=None,
+        chunk_size=None,
+        overlap_ratio=None,
+        verbose=False,
+        watch=False,
+    ):
         return argparse.Namespace(
             input=str(input_path or tmp_path),
             output=str(output_path or (tmp_path / "out")),
@@ -129,6 +147,7 @@ class TestValidateInputs:
 # ---------------------------------------------------------------------------
 # Config building
 # ---------------------------------------------------------------------------
+
 
 class TestBuildConfig:
 
@@ -181,12 +200,15 @@ class TestBuildConfig:
     def test_default_chunk_size_is_max_chunk(self, tmp_path):
         args = self._make_args(tmp_path, chunk_size=None)
         config = build_config(args)
-        assert config.processing.chunk_size == MAX_CHUNK, f"Expected {MAX_CHUNK}, got {config.processing.chunk_size}"
+        assert (
+            config.processing.chunk_size == MAX_CHUNK
+        ), f"Expected {MAX_CHUNK}, got {config.processing.chunk_size}"
 
 
 # ---------------------------------------------------------------------------
 # End-to-end subprocess tests
 # ---------------------------------------------------------------------------
+
 
 class TestCLISubprocess:
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import threading
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -43,15 +43,9 @@ class JobRecord:
     def from_dict(cls, data: dict) -> JobRecord:
         """Create a JobRecord from a dictionary."""
         created_at = datetime.fromisoformat(data["created_at"])
-        started_at = (
-            datetime.fromisoformat(data["started_at"])
-            if data.get("started_at")
-            else None
-        )
+        started_at = datetime.fromisoformat(data["started_at"]) if data.get("started_at") else None
         completed_at = (
-            datetime.fromisoformat(data["completed_at"])
-            if data.get("completed_at")
-            else None
+            datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None
         )
 
         return cls(
@@ -174,9 +168,7 @@ class JobTracker:
 
             # Calculate duration
             if job.started_at is not None:
-                duration = (
-                    job.completed_at - job.started_at
-                ).total_seconds()
+                duration = (job.completed_at - job.started_at).total_seconds()
                 job.duration = duration
 
             job.result = result
@@ -212,9 +204,7 @@ class JobTracker:
 
             # Calculate duration
             if job.started_at is not None:
-                duration = (
-                    job.completed_at - job.started_at
-                ).total_seconds()
+                duration = (job.completed_at - job.started_at).total_seconds()
                 job.duration = duration
 
             job.error = error

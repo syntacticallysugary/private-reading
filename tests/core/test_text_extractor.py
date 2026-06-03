@@ -1,12 +1,13 @@
 """Tests for TextExtractor class."""
 
-import pytest
-from pathlib import Path
-import tempfile
 import os
+import tempfile
+from pathlib import Path
 
-from private_reading.exceptions import TextExtractionError, UnsupportedFormatError
+import pytest
+
 from private_reading.core.text_extractor import TextExtractor
+from private_reading.exceptions import TextExtractionError, UnsupportedFormatError
 
 
 class TestTextExtractor:
@@ -75,8 +76,9 @@ The second paragraph continues the text with additional content for semantic chu
         """Test PDF text extraction."""
         # Create a minimal PDF for testing
         import subprocess
+
         pdf_path = tmp_dir / "sample.pdf"
-        
+
         # Create a simple PDF using pdftk or similar
         # For testing, we'll create a minimal valid PDF
         pdf_content = b"""%PDF-1.4
@@ -111,7 +113,7 @@ trailer
 startxref
 315
 %%EOF"""
-        
+
         with open(pdf_path, "wb") as f:
             f.write(pdf_content)
 

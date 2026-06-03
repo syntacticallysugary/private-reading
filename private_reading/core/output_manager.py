@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
-from private_reading.exceptions import PrivateReadingError, OutputError
+from private_reading.exceptions import OutputError, PrivateReadingError
 
 
 @dataclass
@@ -112,6 +112,7 @@ class OutputManager:
         dest_path = self.processed_dir / filename
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         import shutil
+
         shutil.move(str(file_path), str(dest_path))
 
     async def save_audio_data(

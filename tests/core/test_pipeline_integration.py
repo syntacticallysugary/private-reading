@@ -6,27 +6,28 @@ to audio stitching and output management.
 
 import asyncio
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, patch, MagicMock
-
 import sys
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
-from private_reading.core.pipeline import ProcessingPipeline, ProcessingResult, PipelineStatus
-from private_reading.core.text_extractor import TextExtractor
-from private_reading.core.chunk_manager import ChunkManager, MAX_CHUNK
-from private_reading.core.tts_client import TTSClient
+from private_reading.config import AppConfig, LoggingConfig, ProcessingConfig, TTSConfig
 from private_reading.core.audio_stitcher import AudioStitcher
-from private_reading.core.output_manager import OutputManager
+from private_reading.core.chunk_manager import MAX_CHUNK, ChunkManager
 from private_reading.core.job_tracker import JobTracker
+from private_reading.core.output_manager import OutputManager
+from private_reading.core.pipeline import PipelineStatus, ProcessingPipeline, ProcessingResult
+from private_reading.core.text_extractor import TextExtractor
+from private_reading.core.tts_client import TTSClient
 from private_reading.exceptions import (
-    ExtractionError,
-    ChunkingError,
-    TTSError,
     AudioError,
+    ChunkingError,
+    ExtractionError,
     OutputError,
+    TTSError,
 )
 
 
@@ -292,8 +293,9 @@ This is the third paragraph to verify chunking works correctly with overlap.
                 # Last chunk of previous chunk should appear in next chunk
                 overlap_start = len(chunks[i - 1]) - expected_overlap
                 overlap_end = len(chunks[i])
-                assert chunks[i][:expected_overlap] == chunks[i - 1][-expected_overlap:], \
-                    f"Chunk {i} should overlap with chunk {i-1}"
+                assert (
+                    chunks[i][:expected_overlap] == chunks[i - 1][-expected_overlap:]
+                ), f"Chunk {i} should overlap with chunk {i-1}"
 
     @pytest.mark.asyncio
     async def test_audio_stitching(self, pipeline, test_directory):
@@ -512,7 +514,9 @@ Third paragraph.
         input_file.write_text("Test content for TTS failure.", encoding="utf-8")
 
         # Mock TTSClient.generate_speech to raise TTSError
-        with patch.object(pipeline.tts_client, "generate_speech", new_callable=AsyncMock) as mock_generate:
+        with patch.object(
+            pipeline.tts_client, "generate_speech", new_callable=AsyncMock
+        ) as mock_generate:
             mock_generate.side_effect = TTSError("TTS API unavailable")
 
             # Process file through pipeline
@@ -633,6 +637,7 @@ class TestPipelineComponents:
         # Assert output_path remains None
         assert result.output_path is None
 
+
 # Run tests
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
@@ -642,6 +647,7 @@ if __name__ == "__main__":
 # Semaphore Tests
 # =========================================================================
 
+
 class TestSemaphoreBehavior:
     """Tests for semaphore-based concurrency control."""
 
@@ -649,6 +655,7 @@ class TestSemaphoreBehavior:
     def app_config(self, tmp_path):
         """Create a test AppConfig with default semaphore size."""
         from private_reading.config import SemaphoreConfig
+
         return AppConfig(
             input_dir=tmp_path / "input",
             output_dir=tmp_path / "output",
@@ -781,6 +788,7 @@ class TestSemaphoreBehavior:
 # Semaphore Validation Tests
 # =========================================================================
 
+
 class TestSemaphoreValidation:
     """Tests for semaphore configuration validation."""
 
@@ -846,31 +854,34 @@ class TestSemaphoreValidation:
 # CLI Argument Parsing Tests
 # =========================================================================
 
+
 class TestCLIArgumentParsing:
     """Tests for CLI argument parsing of semaphore size."""
 
     def test_semaphore_size_default(self):
         """Test that default semaphore size is 10 when not specified."""
         import argparse
+
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
+
         # Parse with minimal args (no semaphore-size specified)
-        args = parser.parse_args(['-i', '/input', '-o', '/output'])
-        
+        args = parser.parse_args(["-i", "/input", "-o", "/output"])
+
         assert args.semaphore_size is None
 
     def test_semaphore_size_valid(self):
         """Test parsing valid semaphore size argument."""
         import argparse
+
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
+
         # Parse with semaphore-size=25
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '25'])
-        
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "25"])
+
         assert args.semaphore_size == 25
 
     def test_semaphore_size_boundary_one(self):
@@ -878,9 +889,9 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '1'])
-        
+
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "1"])
+
         assert args.semaphore_size == 1
 
     def test_semaphore_size_boundary_fifty(self):
@@ -888,9 +899,9 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '50'])
-        
+
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "50"])
+
         assert args.semaphore_size == 50
 
     def test_semaphore_size_invalid_negative(self, capsys):
@@ -898,12 +909,12 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '-5'])
-        
+
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "-5"])
+
         # Validate should return False for invalid semaphore size
         result = validate_inputs(args)
-        
+
         assert result is False
 
     def test_semaphore_size_invalid_zero(self, capsys):
@@ -911,11 +922,11 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '0'])
-        
+
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "0"])
+
         result = validate_inputs(args)
-        
+
         assert result is False
 
     def test_semaphore_size_invalid_exceeds_max(self, capsys):
@@ -923,11 +934,11 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser, validate_inputs
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args(['-i', '/input', '-o', '/output', '--semaphore-size', '100'])
-        
+
+        args = parser.parse_args(["-i", "/input", "-o", "/output", "--semaphore-size", "100"])
+
         result = validate_inputs(args)
-        
+
         assert result is False
 
     def test_semaphore_size_build_config(self, tmp_path, monkeypatch):
@@ -935,15 +946,13 @@ class TestCLIArgumentParsing:
         from private_reading.cli import build_config, create_argument_parser
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args([
-            '-i', str(tmp_path / 'input'),
-            '-o', str(tmp_path / 'output'),
-            '--semaphore-size', '5'
-        ])
-        
+
+        args = parser.parse_args(
+            ["-i", str(tmp_path / "input"), "-o", str(tmp_path / "output"), "--semaphore-size", "5"]
+        )
+
         config = build_config(args)
-        
+
         assert config.semaphore.size == 5
 
     def test_semaphore_size_default_in_config(self, tmp_path, monkeypatch):
@@ -951,14 +960,11 @@ class TestCLIArgumentParsing:
         from private_reading.cli import build_config, create_argument_parser
 
         parser = create_argument_parser()
-        
-        args = parser.parse_args([
-            '-i', str(tmp_path / 'input'),
-            '-o', str(tmp_path / 'output')
-        ])
-        
+
+        args = parser.parse_args(["-i", str(tmp_path / "input"), "-o", str(tmp_path / "output")])
+
         config = build_config(args)
-        
+
         assert config.semaphore.size == 10
 
     def test_short_sem_flag_not_supported(self, tmp_path, capsys):
@@ -966,23 +972,23 @@ class TestCLIArgumentParsing:
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
+
         # Try to use -s flag (should fail since only --semaphore-size is supported)
         with pytest.raises(SystemExit):
-            parser.parse_args(['-i', '/input', '-o', '/output', '-s', '10'])
+            parser.parse_args(["-i", "/input", "-o", "/output", "-s", "10"])
 
     def test_semaphore_size_in_help(self, capsys):
         """Test that --semaphore-size appears in help text."""
         from private_reading.cli import create_argument_parser
 
         parser = create_argument_parser()
-        
+
         try:
-            parser.parse_args(['-h'])
+            parser.parse_args(["-h"])
         except SystemExit:
             pass
-        
+
         # Help should mention semaphore-size
         captured = capsys.readouterr()
-        assert '--semaphore-size' in captured.out
-        assert '1-50' in captured.out
+        assert "--semaphore-size" in captured.out
+        assert "1-50" in captured.out

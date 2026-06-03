@@ -15,22 +15,23 @@ This test file verifies Task 3T5 objectives:
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
 from private_reading.exceptions import (
-    PrivateReadingError,
-    ExtractionError,
-    TextExtractionError,
-    UnsupportedFormatError,
-    ChunkingError,
-    TTSError,
-    TTSAPIError,
     AudioError,
     AudioProcessingError,
+    ChunkingError,
+    ExtractionError,
     OutputError,
     PipelineError,
+    PrivateReadingError,
+    TextExtractionError,
+    TTSAPIError,
+    TTSError,
+    UnsupportedFormatError,
 )
 
 
@@ -155,6 +156,7 @@ class TestPipelineExceptionHandling:
             OutputError,
             TTSError,
         )
+
         # If this imports without error, the pipeline has the imports
 
     def test_pipeline_catches_extraction_error(self) -> None:
@@ -162,6 +164,7 @@ class TestPipelineExceptionHandling:
         # This test verifies the pipeline has proper exception handling
         # by checking the source code has the catch block
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -170,6 +173,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_chunking_error(self) -> None:
         """Verify pipeline catches ChunkingError."""
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -178,6 +182,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_tts_error(self) -> None:
         """Verify pipeline catches TTSError."""
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -186,6 +191,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_audio_error(self) -> None:
         """Verify pipeline catches AudioError."""
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -194,6 +200,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_catches_output_error(self) -> None:
         """Verify pipeline catches OutputError."""
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -202,6 +209,7 @@ class TestPipelineExceptionHandling:
     def test_pipeline_has_error_logging(self) -> None:
         """Objective 9: Verify pipeline has error logging with context."""
         import inspect
+
         from private_reading.core.pipeline import ProcessingPipeline
 
         source = inspect.getsource(ProcessingPipeline.process_file)
@@ -215,6 +223,7 @@ class TestRetryLogic:
     def test_pipeline_has_retry_decorator(self) -> None:
         """Verify pipeline has retry decorator for transient errors."""
         from private_reading.core.pipeline import retry
+
         assert callable(retry)
 
     def test_retry_decorator_parameters(self) -> None:

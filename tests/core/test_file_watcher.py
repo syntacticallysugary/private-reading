@@ -1,12 +1,13 @@
 """Tests for FileWatcher class."""
 
-import pytest
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from private_reading.exceptions import MonitoringError, FileWatcherError
+import pytest
+
 from private_reading.core.file_watcher import FileWatcher
+from private_reading.exceptions import FileWatcherError, MonitoringError
 
 
 class TestFileWatcher:
@@ -134,6 +135,7 @@ class TestFileWatcher:
     @pytest.mark.asyncio
     async def test_process_events_callback_error(self, file_watcher, tmp_dir):
         """Test event processing handles callback errors."""
+
         # Create callback that raises
         def failing_callback(path):
             raise ValueError("Callback failed")
@@ -202,6 +204,7 @@ class TestFileWatcher:
     @pytest.mark.asyncio
     async def test_register_callback_async(self, file_watcher, tmp_dir):
         """Test callback registration with async callback."""
+
         async def async_callback(path):
             await asyncio.sleep(0)
 

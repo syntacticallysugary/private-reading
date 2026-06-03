@@ -31,10 +31,10 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig
-from private_reading.core.pipeline import ProcessingPipeline, ProcessingResult
-from private_reading.core.job_tracker import JobTracker
 from private_reading.app import PrivateReadingApp
+from private_reading.config import AppConfig, LoggingConfig, ProcessingConfig, TTSConfig
+from private_reading.core.job_tracker import JobTracker
+from private_reading.core.pipeline import ProcessingPipeline, ProcessingResult
 
 
 class TestPrivateReadingAppInitialization:
@@ -87,7 +87,9 @@ class TestPrivateReadingAppInitialization:
             print("[PASS] Objective 1: AppConfig stored correctly")
         except AttributeError as e:
             print(f"[FAIL] Objective 1: {e}")
-            print("  Known Defect: D-003/D-004/D-005/D-006/D-011 - config.get() used instead of attribute access")
+            print(
+                "  Known Defect: D-003/D-004/D-005/D-006/D-011 - config.get() used instead of attribute access"
+            )
 
     @pytest.mark.asyncio
     async def test_objective_2_pipeline_and_job_tracker_init(self, app_config):
@@ -99,7 +101,9 @@ class TestPrivateReadingAppInitialization:
 
         # Verify pipeline is initialized
         assert app.pipeline is not None, "Pipeline should be initialized"
-        assert isinstance(app.pipeline, ProcessingPipeline), "Pipeline should be ProcessingPipeline instance"
+        assert isinstance(
+            app.pipeline, ProcessingPipeline
+        ), "Pipeline should be ProcessingPipeline instance"
 
         # Verify job_tracker is None (not yet connected to pipeline)
         assert app.job_tracker is None, "JobTracker should be None (not yet connected)"
@@ -142,12 +146,16 @@ class TestPrivateReadingAppRunMethod:
         Known Defects: D-003, D-004, D-005, D-006, D-011 affect argument parsing.
         """
         # Mock the methods that would fail due to known defects
-        with patch.object(app_instance, '_parse_arguments', new_callable=AsyncMock) as mock_parse:
-            with patch.object(app_instance, '_setup_logging', new_callable=AsyncMock) as mock_setup:
-                with patch.object(app_instance, '_log_startup', new_callable=AsyncMock) as mock_log:
-                    with patch.object(app_instance, '_main_loop', new_callable=AsyncMock) as mock_loop:
-                        with patch.object(app_instance, '_shutdown', new_callable=AsyncMock) as mock_shutdown:
-                            with patch.object(app_instance, 'file_watcher', None):
+        with patch.object(app_instance, "_parse_arguments", new_callable=AsyncMock) as mock_parse:
+            with patch.object(app_instance, "_setup_logging", new_callable=AsyncMock) as mock_setup:
+                with patch.object(app_instance, "_log_startup", new_callable=AsyncMock) as mock_log:
+                    with patch.object(
+                        app_instance, "_main_loop", new_callable=AsyncMock
+                    ) as mock_loop:
+                        with patch.object(
+                            app_instance, "_shutdown", new_callable=AsyncMock
+                        ) as mock_shutdown:
+                            with patch.object(app_instance, "file_watcher", None):
                                 # Verify signal handlers would be set up
                                 loop = asyncio.get_event_loop()
                                 for sig in (signal.SIGINT, signal.SIGTERM):
@@ -155,7 +163,9 @@ class TestPrivateReadingAppRunMethod:
                                     try:
                                         loop.add_signal_handler(
                                             sig,
-                                            lambda: asyncio.create_task(app_instance._shutdown(sig)),
+                                            lambda: asyncio.create_task(
+                                                app_instance._shutdown(sig)
+                                            ),
                                         )
                                     except NotImplementedError:
                                         # Windows doesn't support add_signal_handler
@@ -167,7 +177,9 @@ class TestPrivateReadingAppRunMethod:
                                     print("[PASS] Objective 3: run() method startup flow verified")
                                 except (AttributeError, TypeError) as e:
                                     print(f"[FAIL] Objective 3: {e}")
-                                    print("  Known Defect: D-003/D-004/D-005/D-006/D-011 - config.get() or dict access issues")
+                                    print(
+                                        "  Known Defect: D-003/D-004/D-005/D-006/D-011 - config.get() or dict access issues"
+                                    )
 
 
 class TestPrivateReadingAppProcessSingleFile:
@@ -212,7 +224,9 @@ class TestPrivateReadingAppProcessSingleFile:
         test_file.write_text("Test content for processing.", encoding="utf-8")
 
         # Mock the pipeline to avoid actual TTS calls
-        with patch.object(app_instance.pipeline, 'process_file', new_callable=AsyncMock) as mock_process:
+        with patch.object(
+            app_instance.pipeline, "process_file", new_callable=AsyncMock
+        ) as mock_process:
             # Create a mock ProcessingResult
             mock_result = MagicMock(spec=ProcessingResult)
             mock_result.success = True
@@ -222,15 +236,23 @@ class TestPrivateReadingAppProcessSingleFile:
             mock_process.return_value = mock_result
 
             # Mock JobTracker methods
-            with patch.object(app_instance.job_tracker, 'create_job', return_value="job_001") as mock_create:
-                with patch.object(app_instance.job_tracker, 'start_job', return_value=True) as mock_start:
-                    with patch.object(app_instance.job_tracker, 'complete_job') as mock_complete:
+            with patch.object(
+                app_instance.job_tracker, "create_job", return_value="job_001"
+            ) as mock_create:
+                with patch.object(
+                    app_instance.job_tracker, "start_job", return_value=True
+                ) as mock_start:
+                    with patch.object(app_instance.job_tracker, "complete_job") as mock_complete:
                         try:
                             result = await app_instance.process_single_file(test_file)
-                            print("[PASS] Objective 4: process_single_file() job lifecycle verified")
+                            print(
+                                "[PASS] Objective 4: process_single_file() job lifecycle verified"
+                            )
                         except Exception as e:
                             print(f"[FAIL] Objective 4: {e}")
-                            print("  Known Defect: D-010 - result.__dict__ passes internal fields to job result")
+                            print(
+                                "  Known Defect: D-010 - result.__dict__ passes internal fields to job result"
+                            )
 
 
 class TestPrivateReadingAppHealthCheck:
@@ -329,7 +351,7 @@ class TestPrivateReadingAppSignalHandlers:
         Expected: Signal handlers for SIGINT and SIGTERM should be registered in run().
         """
         # Verify _shutdown method exists and has correct signature
-        assert hasattr(app_instance, '_shutdown'), "Should have _shutdown method"
+        assert hasattr(app_instance, "_shutdown"), "Should have _shutdown method"
 
         # Verify shutdown handles file_watcher
         assert app_instance.file_watcher is None, "file_watcher should be None initially"
@@ -393,10 +415,14 @@ class TestPrivateReadingAppParseArguments:
         try:
             single_file = app_instance.config["single_file"]
             print(f"[FAIL] Objective 7: single_file set to {single_file}")
-            print("  Known Defect: D-005 - config['single_file'] uses dict access on Pydantic model")
+            print(
+                "  Known Defect: D-005 - config['single_file'] uses dict access on Pydantic model"
+            )
         except (TypeError, KeyError) as e:
             print(f"[FAIL] Objective 7: {e}")
-            print("  Known Defect: D-005 - config['single_file'] uses dict access on Pydantic model")
+            print(
+                "  Known Defect: D-005 - config['single_file'] uses dict access on Pydantic model"
+            )
 
 
 class TestPrivateReadingAppSetupLogging:
@@ -432,10 +458,10 @@ class TestPrivateReadingAppSetupLogging:
         Expected: _setup_logging() should call setup_logging(self.config).
         """
         # Verify _setup_logging method exists
-        assert hasattr(app_instance, '_setup_logging'), "Should have _setup_logging method"
+        assert hasattr(app_instance, "_setup_logging"), "Should have _setup_logging method"
 
         # Mock the setup_logging function to verify it's called correctly
-        with patch('private_reading.utils.logging.setup_logging') as mock_setup:
+        with patch("private_reading.utils.logging.setup_logging") as mock_setup:
             app_instance._setup_logging()
 
             # Verify setup_logging was called with config

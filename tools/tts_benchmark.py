@@ -13,10 +13,10 @@ import aiohttp
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
-FISH_ENDPOINT   = "http://localhost:8013/v1/tts"
-QWEN_ENDPOINT   = "http://localhost:8014/v1/audio/speech"
+FISH_ENDPOINT = "http://localhost:8013/v1/tts"
+QWEN_ENDPOINT = "http://localhost:8014/v1/audio/speech"
 
-FISH_REFERENCE_ID = ""   # set to your registered voice ID if you want cloned voice
+FISH_REFERENCE_ID = ""  # set to your registered voice ID if you want cloned voice
 
 # ── Test corpus ──────────────────────────────────────────────────────────────
 # Representative 400-char chunks covering mixed sentence types
@@ -49,16 +49,17 @@ CHUNKS = [
     ),
 ]
 
-WARMUP_RUNS  = 1
-TIMED_RUNS   = len(CHUNKS)
+WARMUP_RUNS = 1
+TIMED_RUNS = len(CHUNKS)
 
 # ── Benchmark logic ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class Result:
     name: str
     times_s: list[float] = field(default_factory=list)
-    errors:  int = 0
+    errors: int = 0
 
 
 async def fish_request(session: aiohttp.ClientSession, text: str) -> float:
@@ -74,8 +75,9 @@ async def fish_request(session: aiohttp.ClientSession, text: str) -> float:
     if FISH_REFERENCE_ID:
         payload["reference_id"] = FISH_REFERENCE_ID
     t0 = time.perf_counter()
-    async with session.post(FISH_ENDPOINT, json=payload,
-                            timeout=aiohttp.ClientTimeout(total=600)) as resp:
+    async with session.post(
+        FISH_ENDPOINT, json=payload, timeout=aiohttp.ClientTimeout(total=600)
+    ) as resp:
         resp.raise_for_status()
         await resp.read()
     return time.perf_counter() - t0
@@ -89,8 +91,9 @@ async def qwen_request(session: aiohttp.ClientSession, text: str) -> float:
         "temperature": 0.7,
     }
     t0 = time.perf_counter()
-    async with session.post(QWEN_ENDPOINT, json=payload,
-                            timeout=aiohttp.ClientTimeout(total=600)) as resp:
+    async with session.post(
+        QWEN_ENDPOINT, json=payload, timeout=aiohttp.ClientTimeout(total=600)
+    ) as resp:
         resp.raise_for_status()
         await resp.read()
     return time.perf_counter() - t0
@@ -135,12 +138,12 @@ def report(results: list[Result]) -> None:
         if not r.times_s:
             print(f"\n  {r.name}: no successful runs")
             continue
-        avg   = statistics.mean(r.times_s)
-        med   = statistics.median(r.times_s)
-        mn    = min(r.times_s)
-        mx    = max(r.times_s)
-        total_chars = sum(len(c) for c in CHUNKS[:len(r.times_s)])
-        total_time  = sum(r.times_s)
+        avg = statistics.mean(r.times_s)
+        med = statistics.median(r.times_s)
+        mn = min(r.times_s)
+        mx = max(r.times_s)
+        total_chars = sum(len(c) for c in CHUNKS[: len(r.times_s)])
+        total_time = sum(r.times_s)
         print(f"\n  {r.name}")
         print(f"    avg     {avg:.2f}s")
         print(f"    median  {med:.2f}s")

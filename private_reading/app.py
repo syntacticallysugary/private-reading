@@ -112,9 +112,7 @@ class PrivateReadingApp:
             stop_event = getattr(self, "_stop_event", None)
             while stop_event is None or not stop_event.is_set():
                 try:
-                    file_path = await asyncio.wait_for(
-                        self._file_queue.get(), timeout=0.5
-                    )
+                    file_path = await asyncio.wait_for(self._file_queue.get(), timeout=0.5)
                 except asyncio.TimeoutError:
                     continue
                 self._logger.info(

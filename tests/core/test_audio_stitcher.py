@@ -1,12 +1,13 @@
 """Tests for AudioStitcher class."""
 
-import pytest
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from private_reading.exceptions import AudioProcessingError
+import pytest
+
 from private_reading.core.audio_stitcher import AudioStitcher
+from private_reading.exceptions import AudioProcessingError
 
 
 class TestAudioStitcher:
@@ -94,7 +95,9 @@ class TestAudioStitcher:
             mock_subprocess.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_stitch_with_custom_silence_duration(self, audio_stitcher, sample_wav_files, tmp_dir):
+    async def test_stitch_with_custom_silence_duration(
+        self, audio_stitcher, sample_wav_files, tmp_dir
+    ):
         """Test stitching with custom silence duration."""
         output_path = tmp_dir / "output.wav"
 
@@ -105,7 +108,9 @@ class TestAudioStitcher:
             mock_process.returncode = 0
             mock_subprocess.return_value = mock_process
 
-            await audio_stitcher.stitch(sample_wav_files, output_path, add_silence_between=True, silence_duration_ms=1000)
+            await audio_stitcher.stitch(
+                sample_wav_files, output_path, add_silence_between=True, silence_duration_ms=1000
+            )
 
             # Verify silence was generated with custom duration
             mock_subprocess.assert_called_once()
@@ -289,4 +294,3 @@ class TestAudioStitcher:
 
             # Verify stitching worked with many files
             mock_subprocess.assert_called_once()
-

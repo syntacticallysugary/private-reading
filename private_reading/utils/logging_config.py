@@ -21,11 +21,12 @@ import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 # Try to import python-json-logger for JSON formatting
 try:
     import jsonlogger
+
     HAS_JSON_LOGGER = True
 except ImportError:
     HAS_JSON_LOGGER = False
@@ -34,10 +35,10 @@ except ImportError:
 def _format_json_log_record(record: logging.LogRecord) -> str:
     """
     Format a log record as JSON.
-    
+
     Args:
         record: The log record to format
-        
+
     Returns:
         JSON string representation of the log record
     """
@@ -50,11 +51,11 @@ def _format_json_log_record(record: logging.LogRecord) -> str:
         "function": record.funcName,
         "line": record.lineno,
     }
-    
+
     # Add extra fields if present
     if hasattr(record, "extra_data"):
         log_data.update(record.extra_data)
-    
+
     return json.dumps(log_data, default=str)
 
 
@@ -70,7 +71,7 @@ def get_logging_config(
 ) -> Dict[str, Any]:
     """
     Get logging configuration dictionary suitable for logging.basicConfig().
-    
+
     Args:
         log_level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_format: Output format ("json" or "text")
@@ -80,7 +81,7 @@ def get_logging_config(
         backup_count: Number of backup log files to keep
         log_dir: Directory for log files (defaults to /opt/private-reading/logs)
         enable_json_logger: Use python-json-logger if available
-        
+
     Returns:
         Dictionary with logging configuration for basicConfig()
     """
@@ -100,10 +101,10 @@ def get_logging_config(
                 break
         else:
             log_dir = "/opt/private-reading/logs"
-    
+
     # Create log directory if it doesn't exist
     Path(log_dir).mkdir(parents=True, exist_ok=True)
-    
+
     # Build formatter
     formatter = None
     if log_format == "json":
@@ -113,45 +114,41 @@ def get_logging_config(
             # Use custom JSON formatter
             formatter = logging.Formatter(
                 fmt="%(timestamp)s %(levelname)s %(name)s %(message)s",
-                datefmt="%Y-%m-%dT%H:%M:%S.%f%z"
+                datefmt="%Y-%m-%dT%H:%M:%S.%f%z",
             )
     else:
         # Standard text format
         formatter = logging.Formatter(
-            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
-    
+
     # Build handlers
     handlers = []
-    
+
     # Console handler (stdout)
     if console_handler:
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(getattr(logging, log_level.upper()))
         console_handler.setFormatter(formatter)
         handlers.append(console_handler)
-    
+
     # File handler with rotation
     if file_handler:
         file_path = Path(log_dir) / "private_reading.log"
         file_handler = RotatingFileHandler(
-            file_path,
-            maxBytes=max_bytes,
-            backupCount=backup_count,
-            encoding="utf-8"
+            file_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
         )
         file_handler.setLevel(getattr(logging, log_level.upper()))
         file_handler.setFormatter(formatter)
         handlers.append(file_handler)
-    
+
     # Systemd journal handler (if running under systemd)
     if os.environ.get("SYSTEMD_JOURNAL_ENABLED", "false").lower() == "true":
         try:
             import logging.handlers
+
             journal_handler = logging.handlers.SysLogHandler(
-                address='/dev/log',
-                facility=logging.facility.LOG_USER
+                address="/dev/log", facility=logging.facility.LOG_USER
             )
             journal_handler.setLevel(getattr(logging, log_level.upper()))
             journal_handler.setFormatter(formatter)
@@ -159,18 +156,18 @@ def get_logging_config(
         except Exception as e:
             # Journal handler failed, continue with other handlers
             pass
-    
+
     # Create logger
     logger = logging.getLogger("private_reading")
     logger.setLevel(getattr(logging, log_level.upper()))
-    
+
     # Clear any existing handlers to avoid duplicates
     logger.handlers.clear()
-    
+
     # Add our handlers
     for handler in handlers:
         logger.addHandler(handler)
-    
+
     # Return configuration for basicConfig
     return {
         "level": getattr(logging, log_level.upper()),
@@ -185,12 +182,12 @@ def initialize_logging(
 ) -> logging.Logger:
     """
     Initialize logging configuration and return the logger.
-    
+
     Args:
         log_level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_format: Output format ("json" or "text")
         log_dir: Directory for log files
-        
+
     Returns:
         Configured logger instance
     """
@@ -201,11 +198,11 @@ def initialize_logging(
         file_handler=True,
         log_dir=log_dir,
     )
-    
+
     # Apply configuration
     logging_config = config.get("level", logging.INFO)
     logging.basicConfig(level=logging_config)
-    
+
     return logging.getLogger("private_reading")
 
 
@@ -219,21 +216,21 @@ def get_logger(
 ) -> logging.Logger:
     """
     Get or create a configured logger instance.
-    
+
     Args:
         name: Logger name
         log_level: Optional log level override
-        
+
     Returns:
         Configured logger instance
     """
     global _logger
-    
+
     if _logger is None:
         _logger = logging.getLogger(name)
         _logger.propagate = False
-    
+
     if log_level is not None:
         _logger.setLevel(getattr(logging, log_level.upper()))
-    
+
     return _logger

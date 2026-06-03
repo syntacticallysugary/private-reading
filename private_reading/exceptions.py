@@ -72,7 +72,6 @@ def get_class() -> type:
     return TTSAPIError
 
 
-
 class AudioError(PrivateReadingError):
     """Raised when audio processing fails."""
 

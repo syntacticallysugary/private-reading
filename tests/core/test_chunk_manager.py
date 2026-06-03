@@ -1,9 +1,10 @@
 """Tests for ChunkManager class."""
 
-import pytest
 from pathlib import Path
 
-from private_reading.core.chunk_manager import ChunkManager, ChunkConfig
+import pytest
+
+from private_reading.core.chunk_manager import ChunkConfig, ChunkManager
 
 
 class TestChunkManager:

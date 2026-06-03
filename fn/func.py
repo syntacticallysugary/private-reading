@@ -29,6 +29,7 @@ def _get_signer():
     global _signer
     if not _signer:
         import oci.auth.signers
+
         _signer = oci.auth.signers.get_resource_principals_signer()
     return _signer
 
@@ -36,6 +37,7 @@ def _get_signer():
 def _make_nosql_handle():
     from borneo import NoSQLHandle, NoSQLHandleConfig
     from borneo.iam import SignatureProvider
+
     provider = SignatureProvider.create_with_resource_principal()
     config = NoSQLHandleConfig(OCI_REGION, provider)
     config.set_logger(logger)
@@ -54,9 +56,8 @@ def _get_os():
     global _os_client
     if not _os_client:
         import oci.object_storage
-        _os_client = oci.object_storage.ObjectStorageClient(
-            config={}, signer=_get_signer()
-        )
+
+        _os_client = oci.object_storage.ObjectStorageClient(config={}, signer=_get_signer())
     return _os_client
 
 
@@ -79,12 +80,14 @@ def _err(msg: str, status: int = 400):
 # private subnet. Update if Cognito rotates keys (symptom: all JWTs return 401).
 _COGNITO_JWKS = {
     "tyUmWO6W5q+5QxmjvpY08lPB3FcT4d5zHMgFAs4nqQE=": {
-        "kty": "RSA", "alg": "RS256",
+        "kty": "RSA",
+        "alg": "RS256",
         "n": "xbDfaYpW7dfVZryxFLwrt-GFdeeENXzdvUEV0lXdkjhp62WU6W6V6ojmC8f3bSfPXKSOp9pTviuLiybR96iaQcum4thIDKpO6rxNJdoqsm11-PA3SkTc9U_m9wbmtZP1cuXFOXMANywsztSqVDNd4LI9nbCqIcpiB8LYp138qZ2NjK7tHTIpQwn8H6au3VYJ2K0uWGRzl0RoQKn58qss17o-c5AxbJqwBH7r-NPqbIjlsaru5JMN34ut4O7x8okTEAsf_nR-3qKjK4MeAm7iKwE8kEiw-sNgEwmHIFiqnhZni5DUdAGNUcZN4TS4ZjcAhzVSWPXnhUzRw8e65Uyt_w",
         "e": "AQAB",
     },
     "rNt+Fjj44hzmBN70ZvwvZGyR6HYh9j6HtYYJvBR2+ao=": {
-        "kty": "RSA", "alg": "RS256",
+        "kty": "RSA",
+        "alg": "RS256",
         "n": "x2eB3Ir7zRN5eDOjnsM5BmBOcu5Tmt-r10zsiMGJk3Q07o6cLySXyG16jsV3nn2YYYp1vQDG0MojmaK21iGaroE2X96mBwtwK84rTdaIt8PxPVimw2dywiXMlvvxlC3QU10tKZ0QuG8uwHUKCjmWQoIkhfQvx6PgbkztHhlW1z7iWlF9RjS8zDlUVS_Y4MrROai_RuNNRRP9C1I5RcsO-2Lnptk8Oq7dnUFKLBBgzV3Im0gDjgBGGB8l_9rqxik4kbbbXTEnSrFRYKDuzL6OAB4GM8P_J08owyzhbZFFEP1OZltGckndSDABrdYUllSqXhD8tCViOK_G_f1I-pHSZQ",
         "e": "AQAB",
     },
@@ -95,6 +98,7 @@ _COGNITO_PUBLIC_KEYS: dict = {}
 def _get_cognito_key(kid: str):
     if kid not in _COGNITO_PUBLIC_KEYS:
         import jwt
+
         jwk = _COGNITO_JWKS.get(kid)
         if not jwk:
             return None
@@ -185,13 +189,21 @@ def _ocs_get_bytes(object_name: str) -> bytes | None:
         )
         return resp.data.content
     except Exception as exc:
-        if getattr(getattr(exc, "status", None), "__eq__", lambda _: False)(404) or "404" in str(exc) or "ObjectNotFound" in str(exc) or "NoSuchKey" in str(exc):
+        if (
+            getattr(getattr(exc, "status", None), "__eq__", lambda _: False)(404)
+            or "404" in str(exc)
+            or "ObjectNotFound" in str(exc)
+            or "NoSuchKey" in str(exc)
+        ):
             return None
         raise
 
 
-def _ocs_put_bytes(object_name: str, data: bytes, content_type: str = "application/octet-stream") -> None:
+def _ocs_put_bytes(
+    object_name: str, data: bytes, content_type: str = "application/octet-stream"
+) -> None:
     import io as _io
+
     _get_os().put_object(
         namespace_name=OCI_NAMESPACE,
         bucket_name=AUDIOBOOKS_BUCKET,
@@ -249,9 +261,7 @@ def _current_job(user_id: str) -> dict | None:
 
 
 def _job_by_id(job_id: str) -> dict | None:
-    rows = _query(
-        f"SELECT * FROM {NOSQL_TABLE} WHERE job_id = '{job_id}'"
-    )
+    rows = _query(f"SELECT * FROM {NOSQL_TABLE} WHERE job_id = '{job_id}'")
     return rows[0] if rows else None
 
 
@@ -336,8 +346,7 @@ def _route(method: str, path: str, headers: dict, body: dict):
         if not _worker_ok(headers):
             return _err("Unauthorized", 401)
         rows = _query(
-            f"SELECT * FROM {NOSQL_TABLE} WHERE status = 'pending'"
-            " ORDER BY created_at LIMIT 1"
+            f"SELECT * FROM {NOSQL_TABLE} WHERE status = 'pending'" " ORDER BY created_at LIMIT 1"
         )
         return _json({"job": rows[0] if rows else None})
 
@@ -408,6 +417,7 @@ def _route(method: str, path: str, headers: dict, body: dict):
         if not transcript:
             return _err("transcript is required")
         import base64
+
         try:
             audio_bytes = base64.b64decode(audio_b64)
         except Exception:
@@ -455,8 +465,11 @@ def handler(ctx, data: io.BytesIO = None):
 
     except Exception as _exc:
         import traceback
+
         logger.exception("unhandled error in handler")
-        resp_data = json.dumps({"error": "internal server error", "detail": traceback.format_exc(limit=5)})
+        resp_data = json.dumps(
+            {"error": "internal server error", "detail": traceback.format_exc(limit=5)}
+        )
         status = 500
         resp_headers = {"Content-Type": "application/json"}
 

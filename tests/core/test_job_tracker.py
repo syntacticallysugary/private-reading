@@ -21,7 +21,7 @@ from typing import Optional
 
 import pytest
 
-from private_reading.core.job_tracker import JobTracker, JobRecord
+from private_reading.core.job_tracker import JobRecord, JobTracker
 
 
 class TestJobTrackerInstantiation:

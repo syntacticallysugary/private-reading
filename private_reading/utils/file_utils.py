@@ -31,9 +31,7 @@ def validate_file(file_path: Path) -> bool:
     """
     # Check extension
     if file_path.suffix.lower() not in ALLOWED_EXTENSIONS:
-        raise UnsupportedFormatError(
-            f"Unsupported file extension: {file_path.suffix}"
-        )
+        raise UnsupportedFormatError(f"Unsupported file extension: {file_path.suffix}")
 
     # Check file size
     if file_path.stat().st_size > MAX_FILE_SIZE:

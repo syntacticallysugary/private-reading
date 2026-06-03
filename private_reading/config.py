@@ -1,10 +1,11 @@
 """Configuration classes for Private Reading using Pydantic Settings."""
 
-from private_reading.core.chunk_manager import MAX_CHUNK
-
 from pathlib import Path
 from typing import Any, Optional
+
 from pydantic_settings import BaseSettings
+
+from private_reading.core.chunk_manager import MAX_CHUNK
 
 
 class SemaphoreConfig(BaseSettings):
@@ -26,9 +27,7 @@ class SemaphoreConfig(BaseSettings):
         """
         super().__init__(**kwargs)
         if self.size < 1 or self.size > 50:
-            raise ValueError(
-                f"Semaphore size must be between 1 and 50, got {self.size}"
-            )
+            raise ValueError(f"Semaphore size must be between 1 and 50, got {self.size}")
 
 
 class TTSConfig(BaseSettings):

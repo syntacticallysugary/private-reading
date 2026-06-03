@@ -8,9 +8,15 @@ import os
 import sys
 from pathlib import Path
 
-from private_reading.config import AppConfig, TTSConfig, ProcessingConfig, LoggingConfig, SemaphoreConfig
-from private_reading.core.chunk_manager import MAX_CHUNK
 from private_reading.app import PrivateReadingApp
+from private_reading.config import (
+    AppConfig,
+    LoggingConfig,
+    ProcessingConfig,
+    SemaphoreConfig,
+    TTSConfig,
+)
+from private_reading.core.chunk_manager import MAX_CHUNK
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
@@ -31,11 +37,27 @@ def create_argument_parser() -> argparse.ArgumentParser:
 
     optional = parser.add_argument_group("optional arguments")
     optional.add_argument("-c", "--config", default=None, help="Path to configuration file")
-    optional.add_argument("--reference-id", default=None, dest="reference_id", help="Pre-registered Fish TTS voice reference ID")
-    optional.add_argument("--chunk-size", type=int, default=None, help="Override max chunk size in characters")
-    optional.add_argument("--overlap-ratio", type=float, default=None, help="Override overlap ratio (0.0-1.0)")
-    optional.add_argument("--semaphore-size", type=int, default=None, help="Override semaphore size for concurrency control (1-50)")
-    optional.add_argument("-v", "--verbose", action="store_true", help="Enable verbose/debug logging")
+    optional.add_argument(
+        "--reference-id",
+        default=None,
+        dest="reference_id",
+        help="Pre-registered Fish TTS voice reference ID",
+    )
+    optional.add_argument(
+        "--chunk-size", type=int, default=None, help="Override max chunk size in characters"
+    )
+    optional.add_argument(
+        "--overlap-ratio", type=float, default=None, help="Override overlap ratio (0.0-1.0)"
+    )
+    optional.add_argument(
+        "--semaphore-size",
+        type=int,
+        default=None,
+        help="Override semaphore size for concurrency control (1-50)",
+    )
+    optional.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose/debug logging"
+    )
     optional.add_argument("-w", "--watch", action="store_true", help="Enable file watcher mode")
 
     return parser
@@ -55,7 +77,9 @@ def validate_inputs(args: argparse.Namespace) -> bool:
 
     if output_path.exists():
         if not output_path.is_dir():
-            print(f"Error: Output path exists but is not a directory: {args.output}", file=sys.stderr)
+            print(
+                f"Error: Output path exists but is not a directory: {args.output}", file=sys.stderr
+            )
             return False
         if not os.access(output_path, os.W_OK):
             print(f"Error: Output directory is not writable: {args.output}", file=sys.stderr)
@@ -72,11 +96,17 @@ def validate_inputs(args: argparse.Namespace) -> bool:
         return False
 
     if args.overlap_ratio is not None and not (0.0 <= args.overlap_ratio <= 1.0):
-        print(f"Error: Overlap ratio must be between 0.0 and 1.0, got: {args.overlap_ratio}", file=sys.stderr)
+        print(
+            f"Error: Overlap ratio must be between 0.0 and 1.0, got: {args.overlap_ratio}",
+            file=sys.stderr,
+        )
         return False
 
     if args.semaphore_size is not None and not (1 <= args.semaphore_size <= 50):
-        print(f"Error: Semaphore size must be between 1 and 50, got: {args.semaphore_size}", file=sys.stderr)
+        print(
+            f"Error: Semaphore size must be between 1 and 50, got: {args.semaphore_size}",
+            file=sys.stderr,
+        )
         return False
 
     return True
@@ -95,7 +125,11 @@ def build_config(args: argparse.Namespace) -> AppConfig:
             **({} if args.chunk_size is None else {"chunk_size": args.chunk_size}),
             **({} if args.overlap_ratio is None else {"overlap_ratio": args.overlap_ratio}),
         ),
-        semaphore=SemaphoreConfig() if args.semaphore_size is None else SemaphoreConfig(size=args.semaphore_size),
+        semaphore=(
+            SemaphoreConfig()
+            if args.semaphore_size is None
+            else SemaphoreConfig(size=args.semaphore_size)
+        ),
         logging=LoggingConfig(
             level="DEBUG" if args.verbose else "INFO",
         ),

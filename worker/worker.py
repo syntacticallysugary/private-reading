@@ -94,9 +94,7 @@ async def claim_job(session: aiohttp.ClientSession, job_id: str) -> bool:
         return False
 
 
-async def complete_job(
-    session: aiohttp.ClientSession, job_id: str, audio_path: str
-) -> None:
+async def complete_job(session: aiohttp.ClientSession, job_id: str, audio_path: str) -> None:
     try:
         async with session.post(
             f"{API_BASE_URL}/worker/jobs/{job_id}/complete",
@@ -124,9 +122,7 @@ async def progress_job(
         logger.warning("progress error %s: %s", job_id, exc)
 
 
-async def fail_job(
-    session: aiohttp.ClientSession, job_id: str, error: str
-) -> None:
+async def fail_job(session: aiohttp.ClientSession, job_id: str, error: str) -> None:
     try:
         async with session.post(
             f"{API_BASE_URL}/worker/jobs/{job_id}/fail",
@@ -158,6 +154,7 @@ def _ocs_get(object_name: str) -> bytes | None:
 
 def _ocs_put(object_name: str, data: bytes, content_type: str = "application/json") -> None:
     import io as _io
+
     _os_client.put_object(
         namespace_name=OCI_NAMESPACE,
         bucket_name=BUCKET_NAME,
@@ -205,8 +202,17 @@ async def get_or_register_voice(session: aiohttp.ClientSession, user_id: str) ->
             wav_path = tmp / "sample.wav"
 
             proc = await asyncio.create_subprocess_exec(
-                "ffmpeg", "-y", "-i", str(raw_path),
-                "-ar", "44100", "-ac", "1", "-f", "wav", str(wav_path),
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(raw_path),
+                "-ar",
+                "44100",
+                "-ac",
+                "1",
+                "-f",
+                "wav",
+                str(wav_path),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -310,8 +316,18 @@ async def process_job(session: aiohttp.ClientSession, job: dict) -> None:
 
             proc = await asyncio.create_subprocess_exec(
                 "ffmpeg",
-                "-f", "concat", "-safe", "0", "-i", str(concat_list),
-                "-c:a", "libopus", "-b:a", "64k", "-y", str(output_ogg),
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                str(concat_list),
+                "-c:a",
+                "libopus",
+                "-b:a",
+                "64k",
+                "-y",
+                str(output_ogg),
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -330,6 +346,7 @@ async def process_job(session: aiohttp.ClientSession, job: dict) -> None:
         except Exception:
             logger.exception("job %s failed", job_id)
             import traceback
+
             await fail_job(session, job_id, traceback.format_exc(limit=3))
 
 
@@ -339,12 +356,15 @@ async def process_job(session: aiohttp.ClientSession, job: dict) -> None:
 async def _register_pending_voices(session: aiohttp.ClientSession) -> None:
     loop = asyncio.get_running_loop()
     try:
-        resp = await loop.run_in_executor(None, lambda: _os_client.list_objects(
-            namespace_name=OCI_NAMESPACE,
-            bucket_name=BUCKET_NAME,
-            prefix="voices/",
-            fields="name",
-        ))
+        resp = await loop.run_in_executor(
+            None,
+            lambda: _os_client.list_objects(
+                namespace_name=OCI_NAMESPACE,
+                bucket_name=BUCKET_NAME,
+                prefix="voices/",
+                fields="name",
+            ),
+        )
         for obj in resp.data.objects:
             if not obj.name.endswith("/metadata.json"):
                 continue

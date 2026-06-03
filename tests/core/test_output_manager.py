@@ -1,13 +1,14 @@
 """Tests for OutputManager class."""
 
-import pytest
 import json
-from pathlib import Path
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from private_reading.exceptions import OutputError
+import pytest
+
 from private_reading.core.output_manager import OutputManager, OutputMetadata
+from private_reading.exceptions import OutputError
 
 
 class TestOutputManager:
@@ -163,7 +164,10 @@ class TestOutputManager:
 
         assert saved_metadata["voice_config"]["ref_audio"] == metadata["voice_config"]["ref_audio"]
         assert saved_metadata["voice_config"]["ref_text"] == metadata["voice_config"]["ref_text"]
-        assert saved_metadata["voice_config"]["voice_design"] == metadata["voice_config"]["voice_design"]
+        assert (
+            saved_metadata["voice_config"]["voice_design"]
+            == metadata["voice_config"]["voice_design"]
+        )
 
     @pytest.mark.asyncio
     async def test_move_to_processed_success(self, output_manager, tmp_dir):

@@ -6,5 +6,5 @@ This module allows running Private Reading as a module:
 
 from private_reading.cli import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

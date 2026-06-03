@@ -1,13 +1,14 @@
 """Tests for TTSClient class."""
 
-import pytest
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from private_reading.exceptions import TTSAPIError
-from private_reading.core.tts_client import TTSClient
+import pytest
+
 from private_reading.config import TTSConfig
+from private_reading.core.tts_client import TTSClient
+from private_reading.exceptions import TTSAPIError
 from private_reading.models import VoiceConfig
 
 
@@ -129,6 +130,7 @@ class TestTTSClient:
     @pytest.mark.asyncio
     async def test_generate_speech_exhausts_retries(self, tts_client):
         """Test behavior when all retries are exhausted."""
+
         # Mock _do_generate to always fail
         async def mock_do_generate(*args, **kwargs):
             raise TTSAPIError("Always fails", {"status": 500})
@@ -142,6 +144,7 @@ class TestTTSClient:
     @pytest.mark.asyncio
     async def test_generate_speech_no_retry_on_client_error(self, tts_client):
         """Test no retry on non-retryable client errors (4xx except 429)."""
+
         # Mock _do_generate to raise 400 error
         async def mock_do_generate(*args, **kwargs):
             raise TTSAPIError("Bad request", {"status": 400})

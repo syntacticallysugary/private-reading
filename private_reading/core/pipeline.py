@@ -61,7 +61,7 @@ def retry(max_retries: int = 3, backoff_base: float = 1.0):
                 except Exception as e:
                     last_exception = e
                     if attempt < max_retries - 1:
-                        backoff = backoff_base * (2 ** attempt)
+                        backoff = backoff_base * (2**attempt)
                         await asyncio.sleep(backoff)
             raise last_exception
 
@@ -80,6 +80,7 @@ class ProcessingResult:
         error: Error message if processing failed.
         duration: Total processing time in seconds.
     """
+
     success: bool
     output_path: Optional[Path] = None
     error: Optional[str] = None
@@ -100,6 +101,7 @@ class PipelineStatus:
         component_health: Health status of each pipeline component.
         active_jobs: Number of currently active processing jobs.
     """
+
     state: str = "IDLE"
     component_health: Dict[str, bool] = field(default_factory=dict)
     active_jobs: int = 0
@@ -167,13 +169,14 @@ class ProcessingPipeline:
     def _fix_wav_header(data: bytes) -> bytes:
         """Fix streaming WAV headers where RIFF/data sizes are 0xFFFFFFFF."""
         import struct
-        if len(data) < 44 or data[:4] != b'RIFF':
+
+        if len(data) < 44 or data[:4] != b"RIFF":
             return data
-        if struct.unpack_from('<I', data, 4)[0] != 0xFFFFFFFF:
+        if struct.unpack_from("<I", data, 4)[0] != 0xFFFFFFFF:
             return data
         data = bytearray(data)
-        struct.pack_into('<I', data, 4, len(data) - 8)
-        struct.pack_into('<I', data, 40, len(data) - 44)
+        struct.pack_into("<I", data, 4, len(data) - 8)
+        struct.pack_into("<I", data, 40, len(data) - 44)
         return bytes(data)
 
     async def _retry_with_backoff(
@@ -201,7 +204,7 @@ class ProcessingPipeline:
             except Exception as e:
                 last_exception = e
                 if attempt < max_retries - 1:
-                    backoff = backoff_base * (2 ** attempt)
+                    backoff = backoff_base * (2**attempt)
                     await asyncio.sleep(backoff)
         raise last_exception  # type: ignore[raise-type]
 
@@ -245,9 +248,7 @@ class ProcessingPipeline:
 
             # Stage 1: Extract
             try:
-                text = await self._retry_with_backoff(
-                    self.extractor.extract, file_path
-                )
+                text = await self._retry_with_backoff(self.extractor.extract, file_path)
             except ExtractionError as e:
                 self._logger.error(
                     "pipeline.stage_failed",
@@ -315,9 +316,9 @@ class ProcessingPipeline:
                         return (index, audio_data, wav_path)
 
                     # Use asyncio.gather() to process chunks concurrently (semaphore-wrapped)
-                    results = await asyncio.gather(*[
-                        process_chunk(chunk, i) for i, chunk in enumerate(chunks)
-                    ])
+                    results = await asyncio.gather(
+                        *[process_chunk(chunk, i) for i, chunk in enumerate(chunks)]
+                    )
 
                     # Sort results by index to maintain order
                     for index, audio_data, wav_path in sorted(results, key=lambda x: x[0]):

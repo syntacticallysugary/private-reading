@@ -1,6 +1,6 @@
 """Utility modules for Private Reading."""
 
-from .logging import setup_logging, get_logger
-from .file_utils import validate_file, sanitize_text
+from .file_utils import sanitize_text, validate_file
+from .logging import get_logger, setup_logging
 
 __all__ = ["setup_logging", "get_logger", "validate_file", "sanitize_text"]
