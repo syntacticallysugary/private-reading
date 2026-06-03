@@ -11,7 +11,7 @@ Convert text documents to audiobooks using a self-hosted TTS server (Fish TTS or
 ### 1. Prerequisites
 
 - Docker and Docker Compose
-- A running TTS inference server — Fish TTS (e.g. at `http://192.168.1.104:8013`) or Qwen
+- A running TTS inference server — Fish TTS (e.g. at `http://<your-tts-host>:8013`) or Qwen
 
 ### 2. Configure
 
@@ -79,7 +79,7 @@ All configuration lives in `.env`. Copy `.env.example` to get started.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `TTS_PROVIDER` | `fish` | TTS provider: `fish` or `qwen` |
-| `TTS_ENDPOINT` | `http://192.168.1.104:8013/v1/tts` | URL of your TTS server |
+| `TTS_ENDPOINT` | `http://<your-tts-host>:8013/v1/tts` | URL of your TTS server |
 | `TTS_REFERENCE_ID` | *(blank — server default)* | Pre-registered voice reference ID (Fish and Qwen base) |
 | `TTS_VOICE` | *(blank)* | Natural language voice design prompt (Qwen VoiceDesign only) |
 | `TTS_MODEL` | `qwen` | Model name sent in the OpenAI-compatible request (Qwen only) |
@@ -93,7 +93,7 @@ All configuration lives in `.env`. Copy `.env.example` to get started.
 
 1. Register a reference audio clip with the server:
    ```bash
-   curl -X POST http://192.168.1.104:8013/v1/references/add \
+   curl -X POST http://<your-tts-host>:8013/v1/references/add \
      -F "audio=@my-voice-sample.wav"
    # Returns: {"reference_id": "abc123..."}
    ```
@@ -224,12 +224,12 @@ docker-compose.yml
 
 **TTS requests time out**
 - Reduce `PROCESSING_CHUNK_SIZE` so each request covers less text.
-- Check that your TTS server is reachable from inside the container: `docker compose exec private-reading python3 -c "import urllib.request; urllib.request.urlopen('http://192.168.1.104:8013/')"`
+- Check that your TTS server is reachable from inside the container: `docker compose exec private-reading python3 -c "import urllib.request; urllib.request.urlopen('http://<your-tts-host>:8013/')"`
 
 **Output WAV has no sound or is gibberish**
 - Confirm the TTS server is responding correctly:
   ```bash
-  curl -s http://192.168.1.104:8013/v1/tts \
+  curl -s http://<your-tts-host>:8013/v1/tts \
     -X POST -H "Content-Type: application/json" \
     -d '{"text":"The quick brown fox.","format":"wav","references":[],"streaming":false}' \
     -o test.wav && file test.wav

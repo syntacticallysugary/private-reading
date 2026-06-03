@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 from pathlib import Path
 
-ENDPOINT = "http://192.168.1.104:8008/v1/audio/speech"
+ENDPOINT = "http://localhost:8008/v1/audio/speech"
 OUTPUT_DIR = Path("/home/jimbob/Dev/myaudible/tools/voice_samples")
 SAMPLE_TEXT = (
     "Cost optimization is not about choosing the cheapest option but about aligning cost with usage. "

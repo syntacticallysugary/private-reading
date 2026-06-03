@@ -13,15 +13,15 @@ jobs:
 
       - name: Docker Login to OCIR
         run: |
-          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "axwer8ojpvgx/${{ secrets.OCI_USER_NAME }}" --password-stdin
+          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "${{ secrets.OCI_NAMESPACE }}/${{ secrets.OCI_USER_NAME }}" --password-stdin
 
       - name: Build and Push Image
         run: |
           # Build from root to include private_reading
-          docker build -t ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} -f worker/Dockerfile .
-          docker tag ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} ord.ocir.io/axwer8ojpvgx/private-reading/worker:latest
-          docker push ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }}
-          docker push ord.ocir.io/axwer8ojpvgx/private-reading/worker:latest
+          docker build -t ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -f worker/Dockerfile .
+          docker tag ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:latest
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }}
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:latest
 
       - name: Set Kubeconfig
         run: |
@@ -31,5 +31,5 @@ jobs:
 
       - name: Update K8s Deployment
         run: |
-          kubectl set image deployment/private-reading-worker worker=ord.ocir.io/axwer8ojpvgx/private-reading/worker:${{ github.sha }} -n private-reading
+          kubectl set image deployment/private-reading-worker worker=ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -n private-reading
           kubectl rollout status deployment/private-reading-worker -n private-reading

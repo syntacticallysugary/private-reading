@@ -4,11 +4,11 @@ metadata:
   name: private-reading-worker-config
   namespace: private-reading
 data:
-  API_BASE_URL: "https://o35eybtgc6wg5jujhe5xeixioe.apigateway.us-chicago-1.oci.customer-oci.com/v1"
-  AUDIOBOOKS_BUCKET: "private-reading-prod-audiobooks"
-  OCI_NAMESPACE: "axwer8ojpvgx"
-  OCI_REGION: "us-chicago-1"
-  TTS_ENDPOINT: "http://192.168.1.104:8014/v1/audio/speech"
+  API_BASE_URL: "<YOUR_OCI_API_GATEWAY_URL>/v1"
+  AUDIOBOOKS_BUCKET: "<YOUR_OCI_BUCKET_NAME>"
+  OCI_NAMESPACE: "<YOUR_OCI_NAMESPACE>"
+  OCI_REGION: "<YOUR_OCI_REGION>"
+  TTS_ENDPOINT: "http://<YOUR_TTS_HOST>:8014/v1/audio/speech"
   TTS_PROVIDER: "qwen"
   TTS_MODEL: "qwen3-tts-base"
   TTS_REFERENCE_ID: "m-relaxed"

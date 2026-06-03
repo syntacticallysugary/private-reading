@@ -75,7 +75,7 @@ The Private Reading system is an AI-powered data pipeline that converts text doc
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         EXTERNAL SERVICES                            │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │  Fish TTS API: http://192.168.1.104:8013/v1/tts             │   │
+│  │  Fish TTS API: http://<your-tts-host>:8013/v1/tts             │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -287,7 +287,7 @@ class ChunkManager:
 - `_do_generate(text: str) -> bytes`: Single HTTP request to Fish TTS
 
 **Configuration**:
-- `TTS_ENDPOINT`: API URL (default: `http://192.168.1.104:8013/v1/tts`)
+- `TTS_ENDPOINT`: API URL (default: `http://<your-tts-host>:8013/v1/tts`)
 - `TTS_REFERENCE_ID`: Pre-registered voice reference ID (blank = server default)
 - `TTS_TEMPERATURE`: Generation temperature (default: 0.8)
 - `TTS_TOP_P`: Top-p sampling (default: 0.8)
@@ -579,7 +579,7 @@ class ProcessingMetadata:
 
 ### 5.1 Fish TTS API
 
-**Endpoint**: `POST http://192.168.1.104:8013/v1/tts`
+**Endpoint**: `POST http://<your-tts-host>:8013/v1/tts`
 
 **Request Format**:
 ```json
@@ -737,7 +737,7 @@ from typing import Optional, List
 class TTSConfig(BaseSettings):
     """Fish TTS API configuration."""
     endpoint: str = Field(
-        default="http://192.168.1.104:8013/v1/tts",
+        default="http://<your-tts-host>:8013/v1/tts",
         description="Fish TTS API endpoint"
     )
     reference_id: str = Field(default="", description="Pre-registered voice reference ID")
@@ -782,7 +782,7 @@ class AppConfig(BaseSettings):
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `TTS_ENDPOINT` | Fish TTS API URL | `http://192.168.1.104:8013/v1/tts` |
+| `TTS_ENDPOINT` | Fish TTS API URL | `http://<your-tts-host>:8013/v1/tts` |
 | `TTS_REFERENCE_ID` | Pre-registered voice reference ID | *(blank — server default)* |
 | `TTS_TEMPERATURE` | Generation temperature | `0.8` |
 | `TTS_TOP_P` | Top-p sampling | `0.8` |
@@ -1167,7 +1167,7 @@ class TestChunkManager:
 
 ### B. References
 
-- [Fish TTS API Documentation](http://192.168.1.104:8013/docs)
+- [Fish TTS API Documentation](http://<your-tts-host>:8013/docs)
 - [semchunk Library](https://github.com/example/semchunk)
 - [pdfplumber Documentation](https://pdfplumber.readthedocs.io/)
 - [python-docx Documentation](https://python-docx.readthedocs.io/)

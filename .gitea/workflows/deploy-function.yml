@@ -12,14 +12,14 @@ jobs:
 
       - name: Docker Login to OCIR
         run: |
-          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "axwer8ojpvgx/${{ secrets.OCI_USER_NAME }}" --password-stdin
+          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "${{ secrets.OCI_NAMESPACE }}/${{ secrets.OCI_USER_NAME }}" --password-stdin
 
       - name: Build and Push Image
         run: |
-          docker build -t ord.ocir.io/axwer8ojpvgx/private-reading/api:${{ github.sha }} -f fn/Dockerfile fn/
-          docker tag ord.ocir.io/axwer8ojpvgx/private-reading/api:${{ github.sha }} ord.ocir.io/axwer8ojpvgx/private-reading/api:latest
-          docker push ord.ocir.io/axwer8ojpvgx/private-reading/api:${{ github.sha }}
-          docker push ord.ocir.io/axwer8ojpvgx/private-reading/api:latest
+          docker build -t ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }} -f fn/Dockerfile fn/
+          docker tag ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }} ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:latest
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }}
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:latest
 
       - name: Install OCI CLI
         run: |
@@ -39,4 +39,4 @@ jobs:
         run: |
           oci fn function update \
             --function-id ${{ secrets.FUNCTION_OCID }} \
-            --image ord.ocir.io/axwer8ojpvgx/private-reading/api:${{ github.sha }}
+            --image ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }}

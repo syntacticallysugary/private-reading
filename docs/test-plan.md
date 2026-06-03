@@ -1131,7 +1131,7 @@ jobs:
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
 - [pytest-cov Documentation](https://pytest-cov.readthedocs.io/)
 - [pytest-benchmark Documentation](https://pytest-benchmark.readthedocs.io/)
-- [Qwen 3.0 TTS API Documentation](http://192.168.1.104:8008/docs)
+- [Qwen 3.0 TTS API Documentation](http://<your-tts-host>:8008/docs)
 - [semchunk Library](https://github.com/example/semchunk)
 - [pdfplumber Documentation](https://pdfplumber.readthedocs.io/)
 - [python-docx Documentation](https://python-docx.readthedocs.io/)

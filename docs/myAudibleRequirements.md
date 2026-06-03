@@ -190,7 +190,7 @@ systemd: For service management and path monitoring.
 |-----------|-------------|---------|
 | `INPUT_DIR` | Path to input directory | `/input` |
 | `OUTPUT_DIR` | Path to output directory | `/output` |
-| `TTS_ENDPOINT` | Qwen 3.0 TTS API URL | `http://192.168.1.104:8008/v1/audio/speech` |
+| `TTS_ENDPOINT` | Qwen 3.0 TTS API URL | `http://<your-tts-host>:8008/v1/audio/speech` |
 | `CHUNK_SIZE` | Maximum characters per chunk | 500 |
 | `MAX_PARALLEL` | Maximum concurrent processing | 2 |
 | `RETRY_ATTEMPTS` | Number of retry attempts | 3 |

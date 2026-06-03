@@ -1,9 +1,10 @@
 // ── Configuration ────────────────────────────────────────────────────────────
 
+// Replace these values with your own deployment endpoints before deploying.
 const CONFIG = {
-  API_BASE_URL: 'https://o35eybtgc6wg5jujhe5xeixioe.apigateway.us-chicago-1.oci.customer-oci.com/v1',
-  COGNITO_CLIENT_ID: '7lkv9uvo8e8f47gepa7fg7rbb9',
-  COGNITO_ENDPOINT: 'https://cognito-idp.us-east-1.amazonaws.com/',
+  API_BASE_URL: '<YOUR_OCI_API_GATEWAY_URL>/v1',
+  COGNITO_CLIENT_ID: '<YOUR_COGNITO_APP_CLIENT_ID>',
+  COGNITO_ENDPOINT: 'https://cognito-idp.<YOUR_AWS_REGION>.amazonaws.com/',
   MAX_CHARS: 100000,
 };
 

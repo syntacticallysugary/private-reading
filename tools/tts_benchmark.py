@@ -13,8 +13,8 @@ import aiohttp
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
-FISH_ENDPOINT   = "http://192.168.1.104:8013/v1/tts"
-QWEN_ENDPOINT   = "http://192.168.1.104:8014/v1/audio/speech"
+FISH_ENDPOINT   = "http://localhost:8013/v1/tts"
+QWEN_ENDPOINT   = "http://localhost:8014/v1/audio/speech"
 
 FISH_REFERENCE_ID = ""   # set to your registered voice ID if you want cloned voice
 

@@ -34,7 +34,7 @@ class SemaphoreConfig(BaseSettings):
 class TTSConfig(BaseSettings):
     """TTS API configuration."""
 
-    endpoint: str = "http://192.168.1.104:8014/v1/audio/speech"
+    endpoint: str = "http://localhost:8014/v1/audio/speech"
     provider: str = "qwen"
     voice: str = ""
     model: str = "qwen3-tts-base"
