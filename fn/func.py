@@ -27,6 +27,7 @@ def _validate_id(value: str, name: str) -> str:
         raise ValueError(f"Invalid {name}: must be 8-64 alphanumeric/hyphen characters")
     return value
 
+
 _JOB_ID_RE = re.compile(r"^[0-9a-f]{24}$", re.IGNORECASE)
 
 # ── OCI clients — module-level singletons ─────────────────────────────────────

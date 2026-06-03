@@ -2,7 +2,7 @@
 #
 # Private Reading Installation Script
 # =============================
-# 
+#
 # This script installs Private Reading for system-level operation as a systemd service.
 # It creates the necessary directory structure, sets up the virtual environment,
 # installs dependencies, and configures the systemd service.
@@ -83,26 +83,26 @@ check_existing_installation() {
 # Create directory structure
 create_directories() {
     log_info "Creating directory structure..."
-    
+
     mkdir -p "${INPUT_DIR}"
     mkdir -p "${OUTPUT_DIR}"
     mkdir -p "${PROCESSED_DIR}"
     mkdir -p "${CONFIG_DIR}"
     mkdir -p "${LOGS_DIR}"
-    
+
     log_info "Directories created successfully."
 }
 
 # Create virtual environment
 create_venv() {
     log_info "Setting up Python virtual environment at ${VENV_DIR}..."
-    
+
     # Check if Python version is available
     python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)" || {
         log_error "Python 3.8+ is required. Current version: $(python3 --version 2>/dev/null || echo 'unknown')"
         exit 1
     }
-    
+
     # Create venv if it doesn't exist or is invalid
     if [[ ! -d "${VENV_DIR}/bin/activate" ]]; then
         python3 -m venv "${VENV_DIR}"
@@ -110,7 +110,7 @@ create_venv() {
     else
         log_info "Virtual environment already exists."
     fi
-    
+
     # Upgrade pip and install dependencies
     log_info "Installing dependencies from requirements.txt..."
     source "${VENV_DIR}/bin/activate"
@@ -122,10 +122,10 @@ create_venv() {
 # Copy systemd service files
 copy_systemd_files() {
     log_info "Copying systemd service files to /etc/systemd/system/..."
-    
+
     local service_file="${INSTALL_DIR}/plans/systemd/private-reading.service"
     local path_file="${INSTALL_DIR}/plans/systemd/private-reading-input.path"
-    
+
     if [[ -f "${service_file}" ]]; then
         cp "${service_file}" /etc/systemd/system/${SERVICE_NAME}
         log_info "Service file copied: ${SERVICE_NAME}"
@@ -133,14 +133,14 @@ copy_systemd_files() {
         log_error "Service file not found: ${service_file}"
         exit 5
     fi
-    
+
     if [[ -f "${path_file}" ]]; then
         cp "${path_file}" /etc/systemd/system/private-reading-input.path
         log_info "Socket file copied: private-reading-input.path"
     else
         log_warn "Socket file not found: ${path_file} (optional)"
     fi
-    
+
     log_info "Systemd files copied successfully."
 }
 
@@ -201,32 +201,32 @@ show_status() {
 main() {
     log_info "Starting Private Reading installation..."
     echo ""
-    
+
     # Check for root privileges
     check_root
-    
+
     # Check for existing installation
     check_existing_installation
-    
+
     # Create directories
     create_directories
-    
+
     # Create/set up virtual environment
     create_venv
-    
+
     # Copy systemd files
     copy_systemd_files
-    
+
     # Reload systemd
     reload_systemd
-    
+
     # Enable and start service
     enable_service
     start_service
-    
+
     # Show summary
     show_status
-    
+
     log_info "Installation completed successfully!"
 }
 

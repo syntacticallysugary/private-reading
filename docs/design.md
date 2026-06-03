@@ -127,7 +127,7 @@ class FileWatcher:
         self.callback = callback
         self.watcher = inotifywatch.InotifyWatcher()
         self.watches = {}
-    
+
     async def start(self):
         """Start monitoring the input directory."""
         self.watches[self.input_path] = self.watcher.add_watch(
@@ -135,7 +135,7 @@ class FileWatcher:
             inotifywatch.IN_MODIFY | inotifywatch.IN_CLOSE_WRITE
         )
         await self._process_events()
-    
+
     async def _process_events(self):
         """Process inotify events asynchronously."""
         async for event in self.watcher:
@@ -169,11 +169,11 @@ class TextExtractor:
         self.markdown_parser = MarkdownParser()
         self.pdf_parser = PDFParser()
         self.docx_parser = DOCXParser()
-    
+
     async def extract(self, file_path: Path) -> str:
         """Extract text from file based on extension."""
         ext = file_path.suffix.lower()
-        
+
         if ext == '.md':
             return await self._extract_markdown(file_path)
         elif ext == '.pdf':
@@ -184,7 +184,7 @@ class TextExtractor:
             return await self._extract_docx(file_path)
         else:
             raise UnsupportedFormatError(f"Unsupported format: {ext}")
-    
+
     async def _extract_markdown(self, file_path: Path) -> str:
         """Extract text from markdown, stripping formatting."""
         content = file_path.read_text(encoding='utf-8')
@@ -194,11 +194,11 @@ class TextExtractor:
         content = re.sub(r'\*([^*]+)\*', r'\1', content)  # Italic
         content = re.sub(r'```[\s\S]*?```', '', content)  # Code blocks
         return content
-    
+
     async def _extract_pdf(self, file_path: Path) -> str:
         """Extract text from PDF preserving reading order."""
         import pdfplumber
-        
+
         text_parts = []
         with pdfplumber.open(file_path) as pdf:
             for page in pdf.pages:
@@ -206,19 +206,19 @@ class TextExtractor:
                 if text:
                     text_parts.append(text)
         return '\n\n'.join(text_parts)
-    
+
     async def _extract_docx(self, file_path: Path) -> str:
         """Extract text from DOCX preserving paragraph flow."""
         from docx import Document
-        
+
         doc = Document(file_path)
         paragraphs = []
-        
+
         for para in doc.paragraphs:
             text = para.text.strip()
             if text:
                 paragraphs.append(text)
-        
+
         # Extract table text
         for table in doc.tables:
             for row in table.rows:
@@ -226,7 +226,7 @@ class TextExtractor:
                     text = cell.text.strip()
                     if text:
                         paragraphs.append(text)
-        
+
         return '\n\n'.join(paragraphs)
 ```
 
@@ -252,7 +252,7 @@ class ChunkManager:
     def __init__(self, max_chars: int = 500, overlap_ratio: float = 0.1):
         self.max_chars = max_chars
         self.overlap_ratio = overlap_ratio
-    
+
     async def chunk(self, text: str) -> List[str]:
         """Split text into semantic chunks using semchunk."""
         # semchunk provides semantic-aware chunking
@@ -262,7 +262,7 @@ class ChunkManager:
             overlap=int(self.max_chars * self.overlap_ratio)
         )
         return chunks
-    
+
     async def add_silence_markers(self, chunks: List[str]) -> List[Dict]:
         """Add silence markers between paragraph breaks."""
         marked_chunks = []
@@ -332,10 +332,10 @@ from pathlib import Path
 class AudioStitcher:
     def __init__(self, ffmpeg_path: str = 'ffmpeg'):
         self.ffmpeg_path = ffmpeg_path
-    
+
     async def stitch(
-        self, 
-        wav_files: List[Path], 
+        self,
+        wav_files: List[Path],
         output_path: Path,
         add_silence_between: bool = True,
         silence_duration_ms: int = 500
@@ -345,7 +345,7 @@ class AudioStitcher:
         silence_file = None
         if add_silence_between and len(wav_files) > 1:
             silence_file = await self._generate_silence(silence_duration_ms)
-        
+
         # Create concat list file
         concat_list = Path(output_path.parent / 'concat_list.txt')
         with open(concat_list, 'w') as f:
@@ -353,7 +353,7 @@ class AudioStitcher:
                 f.write(f"file '{wav_file.absolute()}'\n")
                 if i < len(wav_files) - 1 and add_silence_between:
                     f.write(f"file '{silence_file}'\n")
-        
+
         # Run ffmpeg concat
         cmd = [
             self.ffmpeg_path,
@@ -364,31 +364,31 @@ class AudioStitcher:
             '-y',
             str(output_path)
         ]
-        
+
         result = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
         stdout, stderr = await result.communicate()
-        
+
         if result.returncode != 0:
             raise AudioProcessingError(f"FFmpeg error: {stderr.decode()}")
-        
+
         # Cleanup concat list
         concat_list.unlink()
-        
+
         # Apply normalization
         normalized_path = output_path.parent / f"normalized_{output_path.name}"
         await self._normalize_audio(output_path, normalized_path)
-        
+
         # Replace original with normalized
         normalized_path.rename(output_path)
-    
+
     async def _generate_silence(self, duration_ms: int) -> Path:
         """Generate a silence audio file."""
         silence_file = Path(tempfile.gettempdir()) / f"silence_{duration_ms}.wav"
-        
+
         cmd = [
             self.ffmpeg_path,
             '-f', 'lavfi',
@@ -398,11 +398,11 @@ class AudioStitcher:
             '-y',
             str(silence_file)
         ]
-        
+
         await asyncio.create_subprocess_exec(*cmd)
-        
+
         return silence_file
-    
+
     async def _normalize_audio(self, input_path: Path, output_path: Path):
         """Apply loudness normalization using ffmpeg."""
         cmd = [
@@ -412,7 +412,7 @@ class AudioStitcher:
             '-y',
             str(output_path)
         ]
-        
+
         await asyncio.create_subprocess_exec(*cmd)
 ```
 
@@ -437,10 +437,10 @@ class OutputManager:
         self.output_dir = output_dir
         self.processed_dir = processed_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     async def save_wav(
-        self, 
-        audio_data: bytes, 
+        self,
+        audio_data: bytes,
         original_name: str,
         timestamp: Optional[datetime] = None
     ) -> Path:
@@ -448,20 +448,20 @@ class OutputManager:
         ts = timestamp or datetime.now()
         filename = f"{original_name}_{ts.strftime('%Y%m%d_%H%M%S')}.wav"
         output_path = self.output_dir / filename
-        
+
         async with aiofiles.open(output_path, 'wb') as f:
             await f.write(audio_data)
-        
+
         return output_path
-    
+
     async def save_sidecar(
-        self, 
-        metadata: dict, 
+        self,
+        metadata: dict,
         output_path: Path
     ):
         """Save sidecar JSON metadata file."""
         sidecar_path = output_path.parent / f"{output_path.stem}.json"
-        
+
         sidecar_data = {
             'generated_at': datetime.now().isoformat(),
             'output_file': output_path.name,
@@ -472,10 +472,10 @@ class OutputManager:
             'source_file': metadata.get('source_file', ''),
             'processing_status': metadata.get('status', 'completed')
         }
-        
+
         async with aiofiles.open(sidecar_path, 'w') as f:
             await f.write(json.dumps(sidecar_data, indent=2))
-    
+
     async def move_to_processed(self, file_path: Path):
         """Move processed file to archive directory."""
         if self.processed_dir:
@@ -690,11 +690,11 @@ class JobState:
 
 class JobTracker:
     """Track active processing jobs in memory."""
-    
+
     def __init__(self):
         self.jobs: Dict[str, JobState] = {}
         self._lock = asyncio.Lock()
-    
+
     async def create_job(self, job_id: str, source_file: Path) -> JobState:
         async with self._lock:
             state = JobState(
@@ -706,12 +706,12 @@ class JobTracker:
             )
             self.jobs[job_id] = state
             return state
-    
+
     async def mark_chunk_complete(self, job_id: str):
         async with self._lock:
             if job_id in self.jobs:
                 self.jobs[job_id].chunks_generated += 1
-    
+
     async def cleanup(self, job_id: str):
         """Clean up job state and temp files."""
         async with self._lock:
@@ -752,12 +752,12 @@ class ProcessingConfig(BaseSettings):
     input_dir: str = Field(default="/input", description="Input directory path")
     output_dir: str = Field(default="/output", description="Output directory path")
     processed_dir: Optional[str] = Field(default="/processed", description="Processed files directory")
-    
+
     chunk_max_chars: int = Field(default=500, ge=1, description="Max chars per chunk")
     chunk_overlap_ratio: float = Field(default=0.1, ge=0, le=1, description="Chunk overlap ratio")
-    
+
     max_parallel_jobs: int = Field(default=2, ge=1, description="Max concurrent jobs")
-    
+
     add_silence_between: bool = Field(default=True, description="Add silence between chunks")
     silence_duration_ms: int = Field(default=500, ge=0, description="Silence duration in ms")
 
@@ -772,7 +772,7 @@ class AppConfig(BaseSettings):
     tts: TTSConfig = Field(default_factory=TTSConfig)
     processing: ProcessingConfig = Field(default_factory=ProcessingConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
-    
+
     class Config:
         env_prefix = "APP_"
         env_file = ".env"
@@ -889,15 +889,15 @@ def validate_file(file_path: Path) -> bool:
     # Check extension
     if file_path.suffix.lower() not in ALLOWED_EXTENSIONS:
         raise ValueError(f"Unsupported file extension: {file_path.suffix}")
-    
+
     # Check file size
     if file_path.stat().st_size > MAX_FILE_SIZE:
         raise ValueError(f"File too large: {file_path.stat().st_size}")
-    
+
     # Check for path traversal
     if '..' in file_path.parts:
         raise ValueError("Path traversal detected")
-    
+
     return True
 ```
 
@@ -910,11 +910,11 @@ def sanitize_text(text: str) -> str:
     """Sanitize text to prevent injection attacks."""
     # Remove control characters except common whitespace
     text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
-    
+
     # Limit text length
     if len(text) > 100000:
         text = text[:100000]
-    
+
     return text
 ```
 
@@ -1091,27 +1091,27 @@ class TestTextExtractor:
         """Test markdown text extraction."""
         extractor = TextExtractor()
         text = await extractor.extract(sample_md_file)
-        
+
         assert "Hello World" in text
         assert "#" not in text  # Headers should be stripped
-    
+
     @pytest.mark.asyncio
     async def test_extract_pdf(self, sample_pdf_file):
         """Test PDF text extraction."""
         extractor = TextExtractor()
         text = await extractor.extract(sample_pdf_file)
-        
+
         assert len(text) > 0
         assert isinstance(text, str)
-    
+
     @pytest.mark.asyncio
     async def test_extract_docx(self, sample_docx_file):
         """Test DOCX text extraction."""
         extractor = TextExtractor()
         text = await extractor.extract(sample_docx_file)
-        
+
         assert len(text) > 0
-    
+
     @pytest.mark.asyncio
     async def test_unsupported_format(self):
         """Test unsupported file format handling."""
@@ -1127,18 +1127,18 @@ class TestChunkManager:
         manager = ChunkManager(max_chars=100)
         text = "This is a test. " * 20
         chunks = await manager.chunk(text)
-        
+
         assert len(chunks) > 1
         for chunk in chunks:
             assert len(chunk) <= 100
-    
+
     @pytest.mark.asyncio
     async def test_chunk_overlap(self):
         """Test chunk overlap for smooth transitions."""
         manager = ChunkManager(max_chars=50, overlap_ratio=0.2)
         text = "Hello world. This is a test. " * 10
         chunks = await manager.chunk(text)
-        
+
         # Verify overlap exists between consecutive chunks
         for i in range(len(chunks) - 1):
             overlap = set(chunks[i].split()) & set(chunks[i+1].split())

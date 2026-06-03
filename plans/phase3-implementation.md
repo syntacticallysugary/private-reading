@@ -310,7 +310,7 @@ graph TD
         3_5[3.5 Integration tests]
         3_6[3.6 Error handling]
     end
-    
+
     PHASE2[Phase 2 Components] --> 3_1
     3_1 --> 3_2
     3_1 --> 3_3
@@ -318,7 +318,7 @@ graph TD
     3_2 & 3_3 & 3_4 --> 3_5
     3_2 & 3_3 & 3_4 --> 3_6
     3_5 & 3_6 --> DONE{Phase 3 Complete}
-    
+
     classDef phase3 fill:#fff3e0,stroke:#e65100
     class Phase3 phase3
 ```
@@ -375,26 +375,26 @@ class ProcessingPipeline:
         self.audio_stitcher = AudioStitcher()
         self.output_manager = OutputManager()
         self.job_tracker = JobTracker()
-    
+
     async def process_file(self, file_path: Path) -> ProcessingResult:
         # 1. Extract
         text = await self.extractor.extract(file_path)
-        
+
         # 2. Chunk
         chunks = await self.chunk_manager.chunk(text)
-        
+
         # 3. TTS (per chunk)
         audio_chunks = []
         for chunk in chunks:
             audio_data = await self.tts_client.generate_speech(chunk)
             audio_chunks.append(audio_data)
-        
+
         # 4. Stitch
         output_path = await self.audio_stitcher.stitch(audio_chunks)
-        
+
         # 5. Save
         result_path = await self.output_manager.save_wav(output_path)
         await self.output_manager.save_sidecar(metadata, result_path)
-        
+
         return ProcessingResult(success=True, output_path=result_path)
 ```

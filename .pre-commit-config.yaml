@@ -1,0 +1,65 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: detect-private-key
+      - id: check-ast
+      - id: debug-statements
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: ["--line-length=100"]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        exclude: ^(core|tests)/
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-ll", "-ii", "-r"]
+        files: ^(private_reading|fn|worker)/
+
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.95.3
+    hooks:
+      - id: trufflehog
+        name: TruffleHog secrets scan
+        entry: trufflehog git file://. --since-commit HEAD --fail --no-update
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.2.363
+    hooks:
+      - id: checkov
+        args: ["--config-file=.checkov.yml"]
+        files: ^(terraform|worker/k8s)/
+
+  - repo: local
+    hooks:
+      - id: pip-audit
+        name: pip-audit
+        entry: pip-audit
+        language: system
+        args: ["-r", "fn/requirements.txt", "-r", "worker/requirements.txt"]
+        pass_filenames: false

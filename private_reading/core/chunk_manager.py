@@ -112,7 +112,9 @@ class ChunkManager:
                         chunks.append("\n\n".join(current_parts))
                         current_parts = []
                         current_len = 0
-                    sub: list[str] = semchunk.chunk(para, self.max_chars, len)  # type: ignore[assignment]
+                    sub: list[str] = semchunk.chunk(  # type: ignore[assignment]
+                        para, self.max_chars, len
+                    )
                     chunks.extend(c.strip() for c in sub if c.strip())
                 else:
                     added_len = len(para) + (2 if current_parts else 0)

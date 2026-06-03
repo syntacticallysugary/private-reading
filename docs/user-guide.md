@@ -465,11 +465,11 @@ import time
 async def process_with_timing(input_file: Path):
     """Process file with timing."""
     start_time = time.time()
-    
+
     result = await app_instance.process_single_file(input_file)
-    
+
     elapsed = time.time() - start_time
-    
+
     return {
         "result": result,
         "processing_time_seconds": elapsed,

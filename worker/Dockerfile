@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libopus-dev \
@@ -8,18 +7,21 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy requirements and install
 COPY worker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy packages and worker script (build context is project root)
 COPY core/ ./core/
 COPY private_reading/ ./private_reading/
 COPY worker/worker.py .
 
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV OCI_CONFIG_PATH=/root/.oci/config
+RUN useradd -m -u 1000 worker && mkdir -p /home/worker/.oci && chown -R worker:worker /app /home/worker
 
-# Run the worker
+ENV PYTHONPATH=/app
+ENV OCI_CONFIG_PATH=/home/worker/.oci/config
+
+USER worker
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD pgrep -f worker.py || exit 1
+
 CMD ["python", "worker.py"]

@@ -61,7 +61,7 @@ spec:
             name: private-reading-worker-secrets
         volumeMounts:
         - name: oci-config
-          mountPath: /root/.oci
+          mountPath: /home/worker/.oci
           readOnly: true
 
       volumes:

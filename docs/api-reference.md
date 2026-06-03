@@ -22,10 +22,10 @@ from typing import Any, Optional
 
 class AppConfig(BaseSettings):
     """Application configuration."""
-    
+
     # Environment variables
     env_file: Optional[str] = None
-    
+
     # TTS settings
     tts_api_url: str
     tts_api_key: str
@@ -33,7 +33,7 @@ class AppConfig(BaseSettings):
     tts_chunks_delay: str = "3000.0"
     tts_retry_count: int = 3
     tts_timeout: float = 30.0
-    
+
     # Processing settings
     tts_api_key_file: Optional[str] = None
 ```
@@ -41,7 +41,7 @@ class AppConfig(BaseSettings):
 #### Properties
 
 - `tts_config`: `TTSConfig` - TTS API settings
-- `processing_config`: `ProcessingConfig` - Text processing settings  
+- `processing_config`: `ProcessingConfig` - Text processing settings
 - `logging_config`: `LoggingConfig` - Logging settings
 - `get(key, default)`: `Any` - Dynamic configuration access
 
@@ -378,7 +378,7 @@ from private_reading.config import AppConfig
 async def test_full_pipeline():
     config = AppConfig(...)
     application = app.PrivateReadingApp(config)
-    
+
     result = await application.process_single_file(
         Path("sample_document.md")
     )

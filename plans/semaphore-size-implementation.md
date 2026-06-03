@@ -17,14 +17,14 @@ The sweep test (`sweep.py`) demonstrates the semaphore implementation pattern:
 ```python
 async def run_sweep(chunks, concurrency, tts_client):
     sem = asyncio.Semaphore(concurrency)
-    
+
     async def timed_generate(chunk):
         start = time.perf_counter()
         async with sem:
             await tts_client.generate_speech(chunk)
         end = time.perf_counter()
         return end - start
-    
+
     latencies = await asyncio.gather(*(timed_generate(c) for c in chunks))
 ```
 
@@ -52,17 +52,17 @@ for i, chunk in enumerate(chunks):
 ```python
 class SemaphoreConfig(BaseSettings):
     """Semaphore configuration for controlling concurrency."""
-    
+
     size: int = 10  # Default to optimal value from sweep test
     min_value: int = 1
     max_value: int = 50
-    
+
     @model_validator(mode='after')
     def validate_semaphore_size(self):
         if self.size < self.min_value or self.size > self.max_value:
             raise ValueError(f"SEMAPHORE_SIZE must be between {self.min_value} and {self.max_value}")
         return self
-    
+
     class Config:
         env_prefix = "SEMAPHORE_"
 ```
@@ -93,7 +93,7 @@ async with self.tts_client:
     async def process_chunk(chunk):
         async with self.semaphore:
             return await self.tts_client.generate_speech(chunk)
-    
+
     audio_chunks = await asyncio.gather(*(process_chunk(chunk) for chunk in chunks))
 ```
 
@@ -117,8 +117,8 @@ SEMAPHORE_SIZE=10
 ## Configuration Flow
 
 ```
-CLI arg (--semaphore-size) 
-    → Environment variable (SEMAPHORE_SIZE) 
+CLI arg (--semaphore-size)
+    → Environment variable (SEMAPHORE_SIZE)
     → Default (10)
 ```
 

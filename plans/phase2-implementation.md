@@ -148,7 +148,7 @@ graph TD
         2_7[2.7 Unit Tests]
         2_8[2.8 Integration Tests]
     end
-    
+
     2_1 & 2_2 & 2_3 & 2_4 & 2_5 & 2_6 --> 2_7
     2_1 & 2_2 & 2_3 & 2_4 & 2_5 & 2_6 --> 2_8
     2_7 & 2_8 --> DONE{Phase 2 Complete}

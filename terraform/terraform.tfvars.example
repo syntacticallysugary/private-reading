@@ -6,11 +6,9 @@
 oci_tenancy_ocid     = "ocid1.tenancy.oc1..example"
 oci_user_ocid        = "ocid1.user.oc1..example"
 oci_fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
-oci_private_key      = <<-EOT
-  -----BEGIN RSA PRIVATE KEY-----
-  YOUR KEY CONTENT HERE
-  -----END RSA PRIVATE KEY-----
-EOT
+# Paste the contents of your OCI API signing key PEM file here (the full
+# multi-line PEM block including the BEGIN/END headers).
+oci_private_key      = "PASTE_YOUR_OCI_PRIVATE_KEY_PEM_HERE"
 oci_region           = "us-ashburn-1"
 oci_compartment_ocid = "ocid1.compartment.oc1..example"
 

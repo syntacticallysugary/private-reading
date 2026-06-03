@@ -307,7 +307,8 @@ async def process_job(session: aiohttp.ClientSession, job: dict) -> None:
                 sample = "; ".join(f"chunk {i}: {r}" for i, r in failures[:3])
                 raise RuntimeError(f"{len(failures)}/{chunks_total} chunks failed: {sample}")
 
-            wav_paths = [p for _, p in sorted(r for r in results if not isinstance(r, BaseException))]  # type: ignore[misc]
+            ok = (r for r in results if not isinstance(r, BaseException))
+            wav_paths = [p for _, p in sorted(ok)]  # type: ignore[misc]
 
             # 3. Stitch to Opus
             output_ogg = tmp / "output.ogg"

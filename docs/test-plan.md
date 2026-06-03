@@ -753,14 +753,14 @@ def generate_markdown_file(path: Path, size: str = "small") -> Path:
         "medium": 10000,
         "large": 100000
     }
-    
-    words = [''.join(random.choices(string.ascii_lowercase, k=5)) 
+
+    words = [''.join(random.choices(string.ascii_lowercase, k=5))
              for _ in range(sizes[size] // 5)]
-    
+
     content = " ".join(words)
     # Add markdown formatting
     content = f"# Title\n\n{content}\n\n## Section\n\n{content}"
-    
+
     path.write_text(content)
     return path
 
@@ -818,16 +818,16 @@ class TestThroughput:
         input_file = temp_dir / "input" / "test.md"
         input_file.parent.mkdir()
         input_file.write_text("Test content. " * 1000)
-        
+
         # Measure
         start = time.time()
         # Execute pipeline
         end = time.time()
-        
+
         # Assert
         processing_time = end - start
         assert processing_time < expected_time, f"Throughput: {processing_time}s"
-    
+
     @pytest.mark.benchmark
     def test_throughput_max_parallel(self, temp_dir, mock_config):
         """Test throughput with max parallel processing."""
@@ -836,12 +836,12 @@ class TestThroughput:
         for f in files:
             f.parent.mkdir()
             f.write_text("Test content. " * 1000)
-        
+
         # Measure concurrent processing
         start = time.time()
         # Execute concurrent pipeline
         end = time.time()
-        
+
         # Assert
         concurrent_time = end - start
         assert concurrent_time < single_time * 0.5, "Parallelism not effective"
@@ -878,37 +878,37 @@ class TestInputValidation:
     @pytest.fixture
     def extractor(self):
         return TextExtractor()
-    
+
     @pytest.mark.asyncio
     async def test_path_traversal_basic(self, temp_dir, extractor):
         """Test path traversal with basic .."""
         malicious_path = temp_dir / ".." / ".." / "etc" / "passwd"
         malicious_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with pytest.raises(ValueError):
             await extractor.extract(malicious_path)
-    
+
     @pytest.mark.asyncio
     async def test_path_traversal_encoded(self, temp_dir, extractor):
         """Test path traversal with URL encoding."""
         # Note: Path traversal should be detected before URL decoding
         pass
-    
+
     @pytest.mark.asyncio
     async def test_null_byte_injection(self, temp_dir, extractor):
         """Test null byte injection in filename."""
         malicious_path = temp_dir / "file.txt\x00.md"
         malicious_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with pytest.raises(ValueError):
             await extractor.extract(malicious_path)
-    
+
     @pytest.mark.asyncio
     async def test_file_too_large(self, temp_dir, extractor):
         """Test file size limit enforcement."""
         large_file = temp_dir / "large.txt"
         large_file.write_text("x" * (11 * 1024 * 1024))  # 11MB
-        
+
         with pytest.raises(ValueError):
             await extractor.extract(large_file)
 ```
@@ -982,30 +982,30 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-test.txt
-      
+
       - name: Run unit tests
         run: pytest tests/unit/ -v --cov=private_reading --cov-report=xml
-      
+
       - name: Run integration tests
         run: pytest tests/integration/ -v
-      
+
       - name: Run E2E tests
         run: pytest tests/e2e/ -v
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```

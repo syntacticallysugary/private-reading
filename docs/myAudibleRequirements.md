@@ -1,4 +1,4 @@
-# Private Reading - Requirements Document 
+# Private Reading - Requirements Document
 
 ## Overview
 

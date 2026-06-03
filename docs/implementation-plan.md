@@ -355,19 +355,19 @@ class TextExtractor:
     async def extract(self, file_path: Path) -> str:
         # Handle .md, .pdf, .txt, .docx
         pass
-    
+
     async def _extract_markdown(self, file_path: Path) -> str:
         # Strip markdown syntax
         pass
-    
+
     async def _extract_pdf(self, file_path: Path) -> str:
         # Use pdfplumber
         pass
-    
+
     async def _extract_docx(self, file_path: Path) -> str:
         # Use python-docx
         pass
-    
+
     async def _extract_txt(self, file_path: Path) -> str:
         # Read with UTF-8 encoding
         pass
@@ -380,11 +380,11 @@ class TextExtractor:
 class ChunkManager:
     def __init__(self, max_chars: int = 500, overlap_ratio: float = 0.1):
         pass
-    
+
     async def chunk(self, text: str) -> List[str]:
         # Use semchunk for semantic splitting
         pass
-    
+
     async def add_silence_markers(self, chunks: List[str]) -> List[Dict]:
         # Add metadata for stitching
         pass
@@ -397,7 +397,7 @@ class ChunkManager:
 class TTSClient:
     def __init__(self, endpoint: str, retry_attempts: int = 3):
         pass
-    
+
     async def generate_speech(self, text: str, voice_config: Optional[dict] = None) -> bytes:
         # Call Qwen 3.0 TTS API
         # Implement exponential backoff
@@ -411,13 +411,13 @@ class TTSClient:
 class AudioStitcher:
     def __init__(self, ffmpeg_path: str = 'ffmpeg'):
         pass
-    
+
     async def stitch(self, wav_files: List[Path], output_path: Path) -> Path:
         # Use ffmpeg concat
         # Add silence between chunks
         # Apply normalization
         pass
-    
+
     async def _generate_silence(self, duration_ms: int) -> Path:
         # Generate silence audio file
         pass
@@ -430,15 +430,15 @@ class AudioStitcher:
 class OutputManager:
     def __init__(self, output_dir: Path, processed_dir: Optional[Path] = None):
         pass
-    
+
     async def save_wav(self, audio_data: bytes, original_name: str) -> Path:
         # Save WAV with timestamp
         pass
-    
+
     async def save_sidecar(self, metadata: dict, output_path: Path):
         # Save JSON metadata
         pass
-    
+
     async def move_to_processed(self, file_path: Path):
         # Move to archive directory
         pass
@@ -451,11 +451,11 @@ class OutputManager:
 class FileWatcher:
     def __init__(self, input_path: Path, callback: Callable):
         pass
-    
+
     async def start(self):
         # Start inotify monitoring
         pass
-    
+
     async def stop(self):
         # Stop monitoring and cleanup
         pass
@@ -510,28 +510,28 @@ class PrivateReadingApp:
         self.audio_stitcher = AudioStitcher()
         self.output_manager = OutputManager()
         self.job_tracker = JobTracker()
-    
+
     async def process_file(self, file_path: Path) -> ProcessingResult:
         """Process a single file through the pipeline."""
         # 1. Extract text
         text = await self.extractor.extract(file_path)
-        
+
         # 2. Chunk text
         chunks = await self.chunk_manager.chunk(text)
-        
+
         # 3. Generate TTS for each chunk
         audio_chunks = []
         for chunk in chunks:
             audio_data = await self.tts_client.generate_speech(chunk)
             audio_chunks.append(audio_data)
-        
+
         # 4. Stitch audio
         output_path = await self.audio_stitcher.stitch(audio_chunks)
-        
+
         # 5. Save output and metadata
         result_path = await self.output_manager.save_wav(output_path)
         await self.output_manager.save_sidecar(metadata, result_path)
-        
+
         return ProcessingResult(success=True, output_path=result_path)
 ```
 

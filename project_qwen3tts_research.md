@@ -1,10 +1,10 @@
 # Qwen3-TTS Base — Research + Container Analysis
 
-**Date:** 2026-06-02  
-**Model:** Qwen3-TTS-12Hz-1.7B-Base  
-**Container dir:** `/home/jumbob/Dev/Qwen35/qwen30TTS-base`  
-**Paper:** arXiv:2601.15621  
-**GitHub:** https://github.com/QwenLM/Qwen3-TTS  
+**Date:** 2026-06-02
+**Model:** Qwen3-TTS-12Hz-1.7B-Base
+**Container dir:** `/home/jumbob/Dev/Qwen35/qwen30TTS-base`
+**Paper:** arXiv:2601.15621
+**GitHub:** https://github.com/QwenLM/Qwen3-TTS
 **faster-qwen3-tts:** https://github.com/andimarafioti/faster-qwen3-tts
 
 ---
@@ -200,30 +200,30 @@ Port mapping: 8014 (host) → 8000 (container).
 ## Issues Flagged
 
 ### Functional Bug — Fix This
-**1. `/v1/references/add` saves uploaded audio as `.wav` regardless of actual format.**  
+**1. `/v1/references/add` saves uploaded audio as `.wav` regardless of actual format.**
 The endpoint does `VOICES_DIR / f"{ref_id}.wav"` and writes raw bytes from the upload. An MP3 or FLAC upload gets stored with a `.wav` extension but wrong headers. `generate_voice_clone_streaming()` will then receive a malformed file. sox is already installed in the container — conversion or format validation is the fix.
 
 ### Behavioral — Know About These
-**2. Global `threading.Lock()` serializes all inference.**  
+**2. Global `threading.Lock()` serializes all inference.**
 One request at a time, hard-blocked. Required by CUDA graphs' static KV cache. Concurrent clients queue. Expected behavior, not a bug.
 
-**3. CUDA graph warmup on first request.**  
+**3. CUDA graph warmup on first request.**
 First real request after container start is slow while graphs are captured. The 180s healthcheck start-period covers it, but clients that reconnect after a restart should expect a slow first response.
 
-**4. Temperature mismatch between server default and generation_config.**  
+**4. Temperature mismatch between server default and generation_config.**
 `TTSRequest` defaults to `temperature=0.7`; `generation_config.json` specifies 0.9. Request-level wins when provided. If a client omits temperature, 0.7 applies — not the model's intended 0.9. Intentional or oversight — worth being explicit about.
 
-**5. Duplicate `transcript_path` assignment in server.py.**  
+**5. Duplicate `transcript_path` assignment in server.py.**
 Lines 82 and 90 both set `transcript_path` to the same value. Harmless but dead code.
 
 ### Non-Issues (by design)
-**6. `[demo]` extra pulls in Gradio.**  
+**6. `[demo]` extra pulls in Gradio.**
 Only affects image size and build time. Can be dropped to `faster-qwen3-tts` in Dockerfile if unused.
 
-**7. No authentication.**  
+**7. No authentication.**
 Open endpoints. Fine for local inference; don't expose port 8014 externally without a proxy.
 
-**8. Heavyweight base image.**  
+**8. Heavyweight base image.**
 `vllm-openai` includes Ray, vLLM serving stack — none of which server.py uses. Justified by CUDA 13/ARM64 compatibility. Long-term: pytorch.org ARM64/CUDA 13 builds may enable a leaner base.
 
 ---
