@@ -168,5 +168,5 @@ class TTSClient:
 
     def _calculate_backoff(self, attempt: int) -> float:
         base = (2 ** int(attempt)) * 1.0
-        jitter = random.uniform(0, 0.5)
+        jitter = random.uniform(0, 0.5)  # nosec B311 — jitter is not cryptographic
         return base + jitter

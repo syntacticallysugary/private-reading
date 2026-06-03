@@ -18,6 +18,15 @@ OCI_NAMESPACE = os.environ["OCI_NAMESPACE"]
 OCI_REGION = os.environ["OCI_REGION"]
 WORKER_API_KEY = os.environ["WORKER_API_KEY"]
 
+_SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9\-]{8,64}$")
+
+
+def _validate_id(value: str, name: str) -> str:
+    """Raise ValueError if value contains characters unsafe for NoSQL query interpolation."""
+    if not _SAFE_ID_RE.match(value):
+        raise ValueError(f"Invalid {name}: must be 8-64 alphanumeric/hyphen characters")
+    return value
+
 _JOB_ID_RE = re.compile(r"^[0-9a-f]{24}$", re.IGNORECASE)
 
 # ── OCI clients — module-level singletons ─────────────────────────────────────
@@ -220,7 +229,7 @@ def _ocs_delete(object_name: str) -> None:
             bucket_name=AUDIOBOOKS_BUCKET,
             object_name=object_name,
         )
-    except Exception:
+    except Exception:  # nosec B110 — object may not exist, deletion is best-effort
         pass
 
 
@@ -253,15 +262,17 @@ def _delete(user_id: str, job_id: str) -> None:
 
 
 def _current_job(user_id: str) -> dict | None:
+    _validate_id(user_id, "user_id")
     rows = _query(
-        f"SELECT * FROM {NOSQL_TABLE} WHERE user_id = '{user_id}'"
+        f"SELECT * FROM {NOSQL_TABLE} WHERE user_id = '{user_id}'"  # nosec B608
         " ORDER BY created_at DESC LIMIT 1"
     )
     return rows[0] if rows else None
 
 
 def _job_by_id(job_id: str) -> dict | None:
-    rows = _query(f"SELECT * FROM {NOSQL_TABLE} WHERE job_id = '{job_id}'")
+    _validate_id(job_id, "job_id")
+    rows = _query(f"SELECT * FROM {NOSQL_TABLE} WHERE job_id = '{job_id}'")  # nosec B608
     return rows[0] if rows else None
 
 
@@ -346,7 +357,8 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
         if not _worker_ok(headers):
             return _err("Unauthorized", 401)
         rows = _query(
-            f"SELECT * FROM {NOSQL_TABLE} WHERE status = 'pending'" " ORDER BY created_at LIMIT 1"
+            f"SELECT * FROM {NOSQL_TABLE} WHERE status = 'pending'"  # nosec B608 — no user input
+            " ORDER BY created_at LIMIT 1"
         )
         return _json({"job": rows[0] if rows else None})
 
@@ -458,7 +470,7 @@ def handler(ctx, data: io.BytesIO = None):
             if raw:
                 try:
                     body = json.loads(raw)
-                except Exception:
+                except Exception:  # nosec B110 — malformed body, route handles empty body
                     pass
 
         resp_data, status, resp_headers = _route(method, path, headers, body)

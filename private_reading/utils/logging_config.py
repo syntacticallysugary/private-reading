@@ -153,7 +153,7 @@ def get_logging_config(
             journal_handler.setLevel(getattr(logging, log_level.upper()))
             journal_handler.setFormatter(formatter)
             handlers.append(journal_handler)
-        except Exception:
+        except Exception:  # nosec B110 — journald unavailable, fall back silently
             # Journal handler failed, continue with other handlers
             pass
 
