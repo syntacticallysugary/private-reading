@@ -46,6 +46,19 @@ variable "worker_api_key" {
   description = "Shared secret for authenticating worker poll requests."
 }
 
+variable "worker_webhook_url" {
+  type        = string
+  default     = ""
+  description = "Worker webhook receiver URL. Empty disables push notifications."
+}
+
+variable "worker_webhook_secret" {
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "Shared secret for X-Webhook-Secret header on push notifications."
+}
+
 variable "oci_region" {
   type        = string
   description = "OCI region, passed through to the function config."

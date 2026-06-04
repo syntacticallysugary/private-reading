@@ -17,6 +17,8 @@ AUDIOBOOKS_BUCKET = os.environ["AUDIOBOOKS_BUCKET"]
 OCI_NAMESPACE = os.environ["OCI_NAMESPACE"]
 OCI_REGION = os.environ["OCI_REGION"]
 WORKER_API_KEY = os.environ["WORKER_API_KEY"]
+WORKER_WEBHOOK_URL = os.environ.get("WORKER_WEBHOOK_URL", "")
+WORKER_WEBHOOK_SECRET = os.environ.get("WORKER_WEBHOOK_SECRET", "")
 
 _SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9\-]{8,64}$")
 
@@ -144,6 +146,24 @@ def _user_id(headers: dict) -> str | None:
 
 def _worker_ok(headers: dict) -> bool:
     return headers.get("x-worker-token") == WORKER_API_KEY
+
+
+def _notify_worker() -> None:
+    """Fire-and-forget webhook to wake the worker immediately."""
+    if not WORKER_WEBHOOK_URL or not WORKER_WEBHOOK_SECRET:
+        return
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(
+            WORKER_WEBHOOK_URL,
+            data=b"",
+            method="POST",
+            headers={"X-Webhook-Secret": WORKER_WEBHOOK_SECRET},
+        )
+        urllib.request.urlopen(req, timeout=2)  # nosec B310 — URL is operator-configured
+    except Exception:
+        logger.warning("worker webhook notification failed — worker will poll")
 
 
 def _nosql_op(fn):
@@ -308,6 +328,7 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
             "audio_expires_at": "",
         }
         _upsert(job)
+        _notify_worker()
         return _json({"job_id": job["job_id"], "status": "pending"}, 201)
 
     # GET|DELETE /jobs/current — retrieve or cancel the user's latest job

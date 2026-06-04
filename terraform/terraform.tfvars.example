@@ -30,3 +30,7 @@ k8s_host                   = "https://192.168.1.x:6443"
 k8s_cluster_ca_certificate = "BASE64_ENCODED_CA_CERT"
 k8s_client_certificate     = "BASE64_ENCODED_CLIENT_CERT"
 k8s_client_key             = "BASE64_ENCODED_CLIENT_KEY"
+
+# Worker push notifications via WireGuard VPN (optional — omit to use polling only)
+worker_webhook_url    = "http://192.168.1.105:8765/notify"
+worker_webhook_secret = "GENERATE_A_RANDOM_SECRET"

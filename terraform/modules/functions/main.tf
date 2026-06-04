@@ -55,6 +55,8 @@ resource "oci_functions_application" "this" {
     NOSQL_TABLE_NAME       = var.nosql_table_name
     NOSQL_COMPARTMENT_ID   = var.compartment_ocid
     WORKER_API_KEY         = var.worker_api_key
+    WORKER_WEBHOOK_URL     = var.worker_webhook_url
+    WORKER_WEBHOOK_SECRET  = var.worker_webhook_secret
   }
 }
 

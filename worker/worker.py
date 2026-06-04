@@ -30,6 +30,10 @@ BUCKET_NAME = os.environ["AUDIOBOOKS_BUCKET"]
 OCI_NAMESPACE = os.environ["OCI_NAMESPACE"]
 OCI_REGION = os.environ["OCI_REGION"]
 POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL", "10"))
+WEBHOOK_PORT = int(os.environ.get("WEBHOOK_PORT", "8765"))
+WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
+
+_notify_event = asyncio.Event()
 
 _tts_cfg = TTSConfig()
 _proc_cfg = ProcessingConfig()
@@ -351,6 +355,30 @@ async def process_job(session: aiohttp.ClientSession, job: dict) -> None:
             await fail_job(session, job_id, traceback.format_exc(limit=3))
 
 
+# ── Webhook server ─────────────────────────────────────────────────────────────
+
+
+async def _handle_notify(request: aiohttp.web.Request) -> aiohttp.web.Response:
+    if request.headers.get("X-Webhook-Secret") != WEBHOOK_SECRET:
+        logger.warning("webhook: unauthorized request from %s", request.remote)
+        return aiohttp.web.Response(status=401)
+    _notify_event.set()
+    return aiohttp.web.Response(status=204)
+
+
+async def _run_webhook_server() -> None:
+    app = aiohttp.web.Application()
+    app.router.add_post("/notify", _handle_notify)
+    runner = aiohttp.web.AppRunner(app)
+    await runner.setup()
+    site = aiohttp.web.TCPSite(
+        runner, "0.0.0.0", WEBHOOK_PORT
+    )  # nosec B104 — hostNetwork pod, all interfaces intentional
+    await site.start()
+    logger.info("webhook server listening on :%d", WEBHOOK_PORT)
+    await asyncio.Future()
+
+
 # ── Main loop ──────────────────────────────────────────────────────────────────
 
 
@@ -394,8 +422,12 @@ async def run() -> None:
                     logger.warning("failed to claim job %s (already taken)", job["job_id"])
             else:
                 await _register_pending_voices(session)
-                await asyncio.sleep(POLL_INTERVAL)
+                try:
+                    await asyncio.wait_for(_notify_event.wait(), timeout=POLL_INTERVAL)
+                except asyncio.TimeoutError:
+                    pass
+                _notify_event.clear()
 
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    asyncio.run(asyncio.gather(run(), _run_webhook_server()))

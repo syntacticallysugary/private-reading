@@ -96,6 +96,19 @@ variable "worker_api_key" {
   description = "Shared secret for authenticating worker poll requests against /worker/* routes."
 }
 
+variable "worker_webhook_url" {
+  type        = string
+  default     = ""
+  description = "URL of the worker webhook receiver, e.g. http://192.168.1.105:8765/notify. Leave empty to disable push notifications (worker falls back to polling)."
+}
+
+variable "worker_webhook_secret" {
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "Shared secret sent in X-Webhook-Secret header to authenticate push notifications to the worker."
+}
+
 # ── Kubernetes (k3s cluster) ──────────────────────────────────────────────────
 
 variable "k8s_host" {

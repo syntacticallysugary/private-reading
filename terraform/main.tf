@@ -86,6 +86,8 @@ module "functions" {
   timeout_s              = var.function_timeout_s
   nosql_table_name       = module.database.table_name
   worker_api_key         = var.worker_api_key
+  worker_webhook_url     = var.worker_webhook_url
+  worker_webhook_secret  = var.worker_webhook_secret
   oci_region             = var.oci_region
   namespace              = data.oci_objectstorage_namespace.this.namespace
   audiobooks_bucket_name = module.storage.audiobooks_bucket_name
