@@ -225,7 +225,7 @@ async def get_or_register_voice(session: aiohttp.ClientSession, user_id: str) ->
         form = aiohttp.FormData()
         form.add_field("id", user_id)
         form.add_field("audio", wav_bytes, filename="sample.wav", content_type="audio/wav")
-        form.add_field("text", meta.get("transcript", ""))
+        form.add_field("transcript", meta.get("transcript", ""))
         async with session.post(
             f"{tts_base}/v1/references/add",
             data=form,
