@@ -15,10 +15,10 @@ OCI API Gateway
   ▼
 OCI Functions (serverless)         OCI NoSQL (job store)
   │  POST /jobs → job_id           OCI Object Storage (audio)
-  │  GET  /jobs/{id} → status
+  │  GET  /jobs/{id} → status      │
   │  GET  /jobs/{id}/download → pre-signed URL
   │
-  │  worker polls GET /worker/jobs/pending
+  │  POST /notify (webhook via WireGuard VPN)
   ▼
 On-premises k3s worker  ────────▶  Qwen3-TTS-Base (GPU)
   │  claim → chunk → TTS → stitch
@@ -29,7 +29,7 @@ OCI Object Storage (Opus audio)
 Browser downloads file
 ```
 
-The worker runs permanently in a home-lab k3s cluster. It polls the cloud API, processes jobs with a local GPU, and stores the result in OCI Object Storage. The cloud never touches the GPU — the on-premises node reaches out to the cloud, not the other way around.
+The worker runs permanently in a home-lab k3s cluster. When a job is submitted, the OCI Function sends a webhook notification to the worker over a WireGuard VPN tunnel, waking it immediately. The worker also polls the cloud API on a fallback interval in case the webhook is missed. Processing runs on a local GPU and results are stored in OCI Object Storage.
 
 ---
 
@@ -43,6 +43,7 @@ The worker runs permanently in a home-lab k3s cluster. It polls the cloud API, p
 | Audio storage | OCI Object Storage (pre-signed URLs) |
 | TTS inference | Qwen3-TTS-12Hz-1.7B-Base via faster-qwen3-tts |
 | Worker runtime | k3s (Kubernetes) on-premises, pulls image from OCIR |
+| Job delivery | WireGuard VPN (OCI → home lab) + aiohttp webhook receiver; polling fallback |
 | IaC | Terraform (VCN, Functions, NoSQL, API Gateway, Cognito app client) |
 | CI/CD | Gitea Actions (4 workflows: terraform, deploy-function, deploy-worker, deploy-spa) |
 | Container registry | OCI Container Registry (OCIR) |
@@ -85,8 +86,8 @@ terraform/              VCN, Functions, NoSQL, Object Storage, API Gateway, Cogn
 
 ## Key Design Decisions
 
-**Why a polling worker instead of a webhook?**
-The on-premises node is behind NAT — the cloud can't reach it. The worker polls an authenticated endpoint every 10 seconds, claims a job atomically, and pushes results back when done.
+**How does the cloud reach an on-premises node behind NAT?**
+A WireGuard VPN tunnel connects the OCI ARM VM (`erpnext-free`) to the home-lab ER605 router as a persistent peer. OCI's VCN routes the home-lab subnet through the VM's VNIC, so OCI Functions can POST a webhook directly to the worker at its LAN IP the moment a job is created. The worker also polls on a 10-second fallback in case the webhook is not delivered.
 
 **Why OCI Functions over a persistent server?**
 The API handles bursty traffic (user submits → waits → downloads). Serverless eliminates idle capacity and scales to zero between jobs.
