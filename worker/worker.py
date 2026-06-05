@@ -11,6 +11,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import aiohttp
+import aiohttp.web
 import oci
 import oci.object_storage
 
