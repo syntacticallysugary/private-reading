@@ -6,3 +6,4 @@ structlog>=23
 semchunk>=0.1.0
 ffmpeg-python>=0.2
 scipy>=1.11
+# aiohttp[web] already included via aiohttp
