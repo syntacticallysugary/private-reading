@@ -19,5 +19,5 @@ resource "oci_nosql_table" "this" {
     max_storage_in_gbs = 5
   }
 
-  is_auto_reclaimable = false
+  is_auto_reclaimable = true
 }
