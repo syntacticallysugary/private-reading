@@ -430,5 +430,9 @@ async def run() -> None:
                 _notify_event.clear()
 
 
+async def _main() -> None:
+    await asyncio.gather(run(), _run_webhook_server())
+
+
 if __name__ == "__main__":
-    asyncio.run(asyncio.gather(run(), _run_webhook_server()))
+    asyncio.run(_main())
