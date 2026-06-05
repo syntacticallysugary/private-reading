@@ -48,12 +48,12 @@ jobs:
 
       - name: Checkov — IaC security scan
         run: |
-          checkov -d terraform/ worker/k8s/ fn/ \
+          checkov -d terraform/ -d worker/k8s/ -d fn/ \
             --config-file .checkov.yml \
             --framework terraform kubernetes dockerfile \
             --compact --quiet \
             -o json > security-reports/checkov-report.json || \
-          checkov -d terraform/ worker/k8s/ fn/ \
+          checkov -d terraform/ -d worker/k8s/ -d fn/ \
             --config-file .checkov.yml \
             --framework terraform kubernetes dockerfile \
             --compact --quiet
