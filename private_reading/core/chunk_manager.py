@@ -62,14 +62,28 @@ class ChunkManager:
         text = re.sub(r"https?://\S+", "", text, flags=re.IGNORECASE)
         # Footnote / symbol markers inline (∗ † ‡ § ¶)
         text = re.sub(r"[∗†‡§¶]+", "", text)
-        # Lines that are clearly metadata (short, no sentence-ending punctuation,
-        # contain telltale tokens like "Preprint", "Corresponding author", "et al.")
+        # Unicode superscript digits and letters (¹²³ etc.)
+        text = re.sub(r"[²³¹⁰-ⁿ]+", "", text)
+        # Lines that are clearly footers or metadata
         cleaned_lines: list[str] = []
         for line in text.splitlines():
             stripped = line.strip()
-            if re.match(
-                r"^(preprint\.?|corresponding author|received:|accepted:|published:|"
-                r"doi|arxiv|©|\d{4}\s+[a-z]|figure\s+\d|table\s+\d)$",
+            if not stripped:
+                cleaned_lines.append(line)
+                continue
+            # Standalone page numbers: "42", "- 42 -", "Page 42", "Page 42 of 100"
+            if re.fullmatch(
+                r"[-–—]?\s*\d{1,4}\s*[-–—]?|page\s+\d+(\s+of\s+\d+)?",
+                stripped,
+                re.IGNORECASE,
+            ):
+                continue
+            # Short footer-style lines: copyright, journal name, document title repeats
+            if len(stripped) <= 80 and re.search(
+                r"(©|copyright|\ball rights reserved\b|issn\s*:?\s*\d|"
+                r"journal of |proceedings of |conference on |"
+                r"preprint\b|corresponding author|received:|accepted:|published:|"
+                r"\bdoi\b|\barxiv\b|figure\s+\d|table\s+\d)",
                 stripped,
                 re.IGNORECASE,
             ):
