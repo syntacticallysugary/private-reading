@@ -29,6 +29,24 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Apply ConfigMap
+        run: |
+          kubectl create configmap private-reading-worker-config \
+            --from-literal=API_BASE_URL="${{ secrets.API_BASE_URL }}" \
+            --from-literal=AUDIOBOOKS_BUCKET="${{ secrets.AUDIOBOOKS_BUCKET }}" \
+            --from-literal=OCI_NAMESPACE="${{ secrets.OCI_NAMESPACE }}" \
+            --from-literal=OCI_REGION="us-chicago-1" \
+            --from-literal=TTS_ENDPOINT="${{ secrets.TTS_ENDPOINT }}" \
+            --from-literal=TTS_PROVIDER="qwen" \
+            --from-literal=TTS_MODEL="qwen3-tts-base" \
+            --from-literal=TTS_REFERENCE_ID="m-relaxed" \
+            --from-literal=TTS_TIMEOUT_SECONDS="450" \
+            --from-literal=TTS_RETRY_ATTEMPTS="2" \
+            --from-literal=SEMAPHORE_SIZE="1" \
+            --from-literal=PROCESSING_CHUNK_SIZE="1200" \
+            --from-literal=WEBHOOK_PORT="8765" \
+            -n private-reading --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Update K8s Deployment
         run: |
           kubectl set image deployment/private-reading-worker worker=ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -n private-reading
