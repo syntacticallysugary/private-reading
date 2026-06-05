@@ -20,6 +20,7 @@ jobs:
       - name: Install scan tools
         run: |
           pip install bandit pip-audit checkov
+          echo "$(python -m site --user-base)/bin" >> "$GITHUB_PATH"
           mkdir -p "$HOME/bin"
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b "$HOME/bin"
           echo "$HOME/bin" >> "$GITHUB_PATH"
