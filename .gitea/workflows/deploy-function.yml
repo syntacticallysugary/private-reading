@@ -23,10 +23,12 @@ jobs:
 
       - name: Install OCI CLI
         run: |
-          curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
-          chmod +x install.sh
-          ./install.sh --accept-all-defaults
-          echo "/home/runner/bin" >> $GITHUB_PATH
+          if ! command -v oci &>/dev/null; then
+            curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+            chmod +x install.sh
+            ./install.sh --accept-all-defaults
+          fi
+          echo "$HOME/bin" >> "$GITHUB_PATH"
 
       - name: Configure OCI CLI
         run: |
