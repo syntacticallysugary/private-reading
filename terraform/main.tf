@@ -62,16 +62,6 @@ module "storage" {
   oci_region       = var.oci_region
 }
 
-# ── Database (OCI NoSQL, Always Free) ────────────────────────────────────────
-
-module "database" {
-  source = "./modules/database"
-
-  compartment_ocid = var.oci_compartment_ocid
-  app_name         = var.app_name
-  environment      = var.environment
-}
-
 # ── Functions (OCI Functions app + API function + IAM) ───────────────────────
 
 module "functions" {
@@ -84,7 +74,8 @@ module "functions" {
   image                  = var.function_image
   memory_mb              = var.function_memory_mb
   timeout_s              = var.function_timeout_s
-  nosql_table_name       = module.database.table_name
+  job_store_url          = var.job_store_url
+  job_store_api_key      = var.job_store_api_key
   worker_api_key         = var.worker_api_key
   worker_webhook_url     = var.worker_webhook_url
   worker_webhook_secret  = var.worker_webhook_secret

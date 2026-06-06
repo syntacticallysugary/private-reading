@@ -70,6 +70,19 @@ variable "environment" {
   }
 }
 
+# ── Job Store ─────────────────────────────────────────────────────────────────
+
+variable "job_store_url" {
+  type        = string
+  description = "Base URL of the SQLite job store service on the ARM VM, e.g. http://10.0.0.248:8000."
+}
+
+variable "job_store_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Shared secret for X-Job-Store-Token header sent by OCI Functions to the job store."
+}
+
 # ── Functions ─────────────────────────────────────────────────────────────────
 
 variable "function_image" {

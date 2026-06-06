@@ -35,9 +35,15 @@ variable "timeout_s" {
   description = "Function execution timeout in seconds."
 }
 
-variable "nosql_table_name" {
+variable "job_store_url" {
   type        = string
-  description = "Name of the OCI NoSQL jobs table."
+  description = "Base URL of the SQLite job store service, e.g. http://10.0.0.248:8000."
+}
+
+variable "job_store_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Bearer token for X-Job-Store-Token header on job store API calls."
 }
 
 variable "worker_api_key" {

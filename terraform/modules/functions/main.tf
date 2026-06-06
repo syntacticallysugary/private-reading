@@ -24,7 +24,6 @@ resource "oci_identity_policy" "functions" {
 
   statements = [
     "Allow dynamic-group ${oci_identity_dynamic_group.functions.name} to manage object-family in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.functions.name} to manage nosql-family in tenancy",
   ]
 }
 
@@ -47,16 +46,16 @@ resource "oci_functions_application" "this" {
 
   # Shared config injected into all functions in this application
   config = {
-    OCI_REGION             = var.oci_region
-    OCI_NAMESPACE          = var.namespace
-    AUDIOBOOKS_BUCKET      = var.audiobooks_bucket_name
-    COGNITO_ISSUER         = var.cognito_issuer
-    COGNITO_CLIENT_ID      = var.cognito_client_id
-    NOSQL_TABLE_NAME       = var.nosql_table_name
-    NOSQL_COMPARTMENT_ID   = var.compartment_ocid
-    WORKER_API_KEY         = var.worker_api_key
-    WORKER_WEBHOOK_URL     = var.worker_webhook_url
-    WORKER_WEBHOOK_SECRET  = var.worker_webhook_secret
+    OCI_REGION            = var.oci_region
+    OCI_NAMESPACE         = var.namespace
+    AUDIOBOOKS_BUCKET     = var.audiobooks_bucket_name
+    COGNITO_ISSUER        = var.cognito_issuer
+    COGNITO_CLIENT_ID     = var.cognito_client_id
+    JOB_STORE_URL         = var.job_store_url
+    JOB_STORE_API_KEY     = var.job_store_api_key
+    WORKER_API_KEY        = var.worker_api_key
+    WORKER_WEBHOOK_URL    = var.worker_webhook_url
+    WORKER_WEBHOOK_SECRET = var.worker_webhook_secret
   }
 }
 

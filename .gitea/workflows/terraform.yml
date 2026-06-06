@@ -34,6 +34,8 @@ jobs:
           TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_COGNITO_USER_POOL_ID }}
           TF_VAR_function_image: ${{ secrets.TF_VAR_FUNCTION_IMAGE }}
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
+          TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
+          TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
@@ -49,6 +51,8 @@ jobs:
           TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_COGNITO_USER_POOL_ID }}
           TF_VAR_function_image: ${{ secrets.TF_VAR_FUNCTION_IMAGE }}
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
+          TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
+          TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -64,3 +68,5 @@ jobs:
           TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_COGNITO_USER_POOL_ID }}
           TF_VAR_function_image: ${{ secrets.TF_VAR_FUNCTION_IMAGE }}
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
+          TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
+          TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}

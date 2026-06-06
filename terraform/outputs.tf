@@ -41,8 +41,3 @@ output "functions_application_id" {
   value       = module.functions.application_id
   description = "OCI Functions application OCID. Used by CI/CD fn deploy command."
 }
-
-output "db_id" {
-  value       = module.database.db_id
-  description = "Autonomous JSON Database OCID."
-}

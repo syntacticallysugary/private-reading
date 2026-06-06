@@ -5,14 +5,16 @@ import json
 import logging
 import os
 import re
+import urllib.error
+import urllib.request
 import uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-NOSQL_TABLE = os.environ["NOSQL_TABLE_NAME"]
-NOSQL_COMPARTMENT = os.environ["NOSQL_COMPARTMENT_ID"]
+JOB_STORE_URL = os.environ["JOB_STORE_URL"]
+JOB_STORE_API_KEY = os.environ["JOB_STORE_API_KEY"]
 AUDIOBOOKS_BUCKET = os.environ["AUDIOBOOKS_BUCKET"]
 OCI_NAMESPACE = os.environ["OCI_NAMESPACE"]
 OCI_REGION = os.environ["OCI_REGION"]
@@ -20,21 +22,11 @@ WORKER_API_KEY = os.environ["WORKER_API_KEY"]
 WORKER_WEBHOOK_URL = os.environ.get("WORKER_WEBHOOK_URL", "")
 WORKER_WEBHOOK_SECRET = os.environ.get("WORKER_WEBHOOK_SECRET", "")
 
-_SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9\-]{8,64}$")
-
-
-def _validate_id(value: str, name: str) -> str:
-    """Raise ValueError if value contains characters unsafe for NoSQL query interpolation."""
-    if not _SAFE_ID_RE.match(value):
-        raise ValueError(f"Invalid {name}: must be 8-64 alphanumeric/hyphen characters")
-    return value
-
-
 _JOB_ID_RE = re.compile(r"^[0-9a-f]{24}$", re.IGNORECASE)
 
 # ── OCI clients — module-level singletons ─────────────────────────────────────
 
-_signer = _nosql_handle = _os_client = None
+_signer = _os_client = None
 
 
 def _get_signer():
@@ -44,24 +36,6 @@ def _get_signer():
 
         _signer = oci.auth.signers.get_resource_principals_signer()
     return _signer
-
-
-def _make_nosql_handle():
-    from borneo import NoSQLHandle, NoSQLHandleConfig
-    from borneo.iam import SignatureProvider
-
-    provider = SignatureProvider.create_with_resource_principal()
-    config = NoSQLHandleConfig(OCI_REGION, provider)
-    config.set_logger(logger)
-    return NoSQLHandle(config)
-
-
-def _get_nosql():
-    """Return a borneo NoSQLHandle, recreating it if resource principal auth expired."""
-    global _nosql_handle
-    if not _nosql_handle:
-        _nosql_handle = _make_nosql_handle()
-    return _nosql_handle
 
 
 def _get_os():
@@ -86,6 +60,30 @@ def _json(data, status: int = 200):
 
 def _err(msg: str, status: int = 400):
     return _json({"error": msg}, status)
+
+
+def _job_store(method: str, path: str, body: dict | None = None) -> tuple[dict, int]:
+    """HTTP call to the job store service, returns (response_dict, http_status)."""
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(
+        JOB_STORE_URL + path,
+        data=data,
+        method=method,
+        headers={
+            "X-Job-Store-Token": JOB_STORE_API_KEY,
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(
+            req, timeout=10
+        ) as resp:  # nosec B310 — URL is operator-configured
+            return json.loads(resp.read()), resp.status
+    except urllib.error.HTTPError as exc:
+        try:
+            return json.loads(exc.read()), exc.code
+        except Exception:
+            return {"error": str(exc)}, exc.code
 
 
 # Cognito RSA public keys — embedded to avoid outbound network calls from the
@@ -152,8 +150,6 @@ def _notify_worker() -> None:
     """Fire-and-forget webhook to wake the worker immediately."""
     if not WORKER_WEBHOOK_URL or not WORKER_WEBHOOK_SECRET:
         return
-    import urllib.request
-
     try:
         req = urllib.request.Request(
             WORKER_WEBHOOK_URL,
@@ -164,50 +160,6 @@ def _notify_worker() -> None:
         urllib.request.urlopen(req, timeout=2)  # nosec B310 — URL is operator-configured
     except Exception:
         logger.warning("worker webhook notification failed — worker will poll")
-
-
-def _nosql_op(fn):
-    """Run a borneo operation, refreshing the handle once on auth failure."""
-    global _nosql_handle
-    try:
-        return fn(_get_nosql())
-    except Exception as exc:
-        if "NotAuthenticated" in str(exc) or "InvalidAuthorization" in str(exc):
-            logger.warning("borneo auth expired — refreshing handle")
-            _nosql_handle = _make_nosql_handle()
-            return fn(_nosql_handle)
-        raise
-
-
-def _query(stmt: str) -> list[dict]:
-    from borneo import QueryRequest
-
-    def run(handle):
-        req = QueryRequest()
-        req.set_statement(stmt)
-        req.set_compartment(NOSQL_COMPARTMENT)
-        results = []
-        while True:
-            resp = handle.query(req)
-            results.extend(resp.get_results())
-            if req.is_done():
-                break
-        return results
-
-    return _nosql_op(run)
-
-
-def _upsert(row: dict) -> None:
-    from borneo import PutRequest
-
-    def run(handle):
-        req = PutRequest()
-        req.set_table_name(NOSQL_TABLE)
-        req.set_compartment(NOSQL_COMPARTMENT)
-        req.set_value(row)
-        handle.put(req)
-
-    _nosql_op(run)
 
 
 def _ocs_get_bytes(object_name: str) -> bytes | None:
@@ -269,34 +221,6 @@ def _read_voice_meta(user_id: str) -> dict | None:
     return json.loads(raw)
 
 
-def _delete(user_id: str, job_id: str) -> None:
-    from borneo import DeleteRequest
-
-    def run(handle):
-        req = DeleteRequest()
-        req.set_table_name(NOSQL_TABLE)
-        req.set_compartment(NOSQL_COMPARTMENT)
-        req.set_key({"user_id": user_id, "job_id": job_id})
-        handle.delete(req)
-
-    _nosql_op(run)
-
-
-def _current_job(user_id: str) -> dict | None:
-    _validate_id(user_id, "user_id")
-    rows = _query(
-        f"SELECT * FROM {NOSQL_TABLE} WHERE user_id = '{user_id}'"  # nosec B608
-        " ORDER BY created_at DESC LIMIT 1"
-    )
-    return rows[0] if rows else None
-
-
-def _job_by_id(job_id: str) -> dict | None:
-    _validate_id(job_id, "job_id")
-    rows = _query(f"SELECT * FROM {NOSQL_TABLE} WHERE job_id = '{job_id}'")  # nosec B608
-    return rows[0] if rows else None
-
-
 # ── Router ─────────────────────────────────────────────────────────────────────
 
 _WORKER_PATH_RE = re.compile(r"^/worker/jobs/([^/]+)/(claim|complete|fail|progress)$")
@@ -314,35 +238,25 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
         text = (body.get("text") or "").strip()
         if not text:
             return _err("text is required")
-        now = _now()
-        job = {
-            "user_id": uid,
-            "job_id": uuid.uuid4().hex[:24],
-            "status": "pending",
-            "text": text,
-            "text_length": len(text),
-            "created_at": now,
-            "updated_at": now,
-            "error": "",
-            "audio_path": "",
-            "audio_expires_at": "",
-        }
-        _upsert(job)
+        job_id = uuid.uuid4().hex[:24]
+        _job_store("POST", "/jobs", {"user_id": uid, "job_id": job_id, "text": text})
         _notify_worker()
-        return _json({"job_id": job["job_id"], "status": "pending"}, 201)
+        return _json({"job_id": job_id, "status": "pending"}, 201)
 
     # GET|DELETE /jobs/current — retrieve or cancel the user's latest job
     if path == "/jobs/current":
         uid = _user_id(headers)
         if not uid:
             return _err("Unauthorized", 401)
-        job = _current_job(uid)
-        if not job:
+        job, st = _job_store("GET", f"/jobs/user/{uid}/current")
+        if st == 404:
             return _err("No current job", 404)
+        if st != 200:
+            return _err("Job store error", 500)
         if method == "GET":
             return _json(job)
         if method == "DELETE":
-            _delete(uid, job["job_id"])
+            _job_store("DELETE", f"/jobs/{uid}/{job['job_id']}")
             return _json({"deleted": True})
 
     # GET /jobs/current/url — generate a 24-hour pre-signed download URL
@@ -350,9 +264,11 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
         uid = _user_id(headers)
         if not uid:
             return _err("Unauthorized", 401)
-        job = _current_job(uid)
-        if not job:
+        job, st = _job_store("GET", f"/jobs/user/{uid}/current")
+        if st == 404:
             return _err("No current job", 404)
+        if st != 200:
+            return _err("Job store error", 500)
         if job.get("status") != "complete":
             return _err(f"Job not complete: {job.get('status')}", 409)
         audio_path = job.get("audio_path", "")
@@ -378,13 +294,10 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
     if path == "/worker/jobs/pending" and method == "GET":
         if not _worker_ok(headers):
             return _err("Unauthorized", 401)
-        rows = _query(
-            f"SELECT * FROM {NOSQL_TABLE} WHERE status = 'pending'"  # nosec B608 — no user input
-            " ORDER BY created_at LIMIT 1"
-        )
-        return _json({"job": rows[0] if rows else None})
+        result, _ = _job_store("GET", "/jobs/pending")
+        return _json(result)
 
-    # POST /worker/jobs/{id}/(claim|complete|fail)
+    # POST /worker/jobs/{id}/(claim|complete|fail|progress)
     m = _WORKER_PATH_RE.fullmatch(path)
     if m and method == "POST":
         if not _worker_ok(headers):
@@ -392,32 +305,30 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
         job_id, action = m.group(1), m.group(2)
         if not _JOB_ID_RE.match(job_id):
             return _err("Invalid job_id", 400)
-        job = _job_by_id(job_id)
-        if not job:
-            return _err("Job not found", 404)
 
         if action == "claim":
-            if job.get("status") != "pending":
-                return _err(f"Job not pending: {job.get('status')}", 409)
-            job.update(status="processing", updated_at=_now())
-            _upsert(job)
+            job, st = _job_store("POST", f"/jobs/{job_id}/claim")
+            if st == 404:
+                return _err("Job not found", 404)
+            if st == 409:
+                return _err(job.get("error", "Job not pending"), 409)
             return _json(job)
 
         if action == "complete":
             audio_path = (body.get("audio_path") or "").strip()
             if not audio_path:
                 return _err("audio_path is required")
-            job.update(status="complete", audio_path=audio_path, updated_at=_now())
-            _upsert(job)
+            _, st = _job_store("POST", f"/jobs/{job_id}/complete", {"audio_path": audio_path})
+            if st == 404:
+                return _err("Job not found", 404)
             return _json({"ok": True})
 
         if action == "fail":
-            job.update(
-                status="failed",
-                error=body.get("error", "unknown"),
-                updated_at=_now(),
+            _, st = _job_store(
+                "POST", f"/jobs/{job_id}/fail", {"error": body.get("error", "unknown")}
             )
-            _upsert(job)
+            if st == 404:
+                return _err("Job not found", 404)
             return _json({"ok": True})
 
         if action == "progress":
@@ -425,8 +336,13 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
             total = body.get("chunks_total")
             if done is None or total is None:
                 return _err("chunks_done and chunks_total required")
-            job.update(chunks_done=int(done), chunks_total=int(total), updated_at=_now())
-            _upsert(job)
+            _, st = _job_store(
+                "POST",
+                f"/jobs/{job_id}/progress",
+                {"chunks_done": int(done), "chunks_total": int(total)},
+            )
+            if st == 404:
+                return _err("Job not found", 404)
             return _json({"ok": True})
 
     # GET /voice — return user's voice registration status

@@ -18,8 +18,9 @@ aws_region           = "us-east-1"
 # Cognito — ID of the User Pool managed by Know-It-All CloudFormation stack
 cognito_user_pool_id = "us-east-1_AbCdEfGhI"
 
-# Database
-db_admin_password = "ChangeMe123!"
+# Job store (FastAPI + SQLite service on ARM VM)
+job_store_url     = "http://10.0.0.248:8000"
+job_store_api_key = "GENERATE_A_RANDOM_SECRET"
 
 # Application
 app_name    = "private-reading"

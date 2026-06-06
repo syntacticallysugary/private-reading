@@ -1,0 +1,15 @@
+[Unit]
+Description=Private Reading Job Store API
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/jobstore
+EnvironmentFile=/opt/jobstore/.env
+ExecStart=/opt/jobstore/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000 --log-level warning
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

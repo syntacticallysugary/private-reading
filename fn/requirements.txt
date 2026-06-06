@@ -1,5 +1,4 @@
 fdk>=0.1.73
 oci>=2.125.0
-borneo>=5.4.1
 PyJWT[crypto]>=2.8.0
 # boto3 excluded — using OCI SDK only
