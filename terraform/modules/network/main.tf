@@ -44,8 +44,21 @@ resource "oci_core_service_gateway" "this" {
   }
 }
 
+# ── NAT gateway (internet egress for Functions — needed to reach job store) ───
+# The ARM VM is in a separate Base VCN; its private IP is not routable from here.
+# Functions use the ARM VM's public IP, which requires a NAT gateway for egress.
+# NAT gateway is ~$0.36/month on OCI pay-as-you-go.
+
+resource "oci_core_nat_gateway" "this" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = oci_core_vcn.this.id
+  display_name   = "${local.prefix}-nat-gw"
+  block_traffic  = false
+}
+
 # ── Route table for private subnet ────────────────────────────────────────────
-# Only Oracle service traffic is routed — Functions have no public internet access.
+# Oracle service traffic → service gateway (free).
+# All other internet traffic → NAT gateway (needed for job store on ARM VM).
 # API Gateway calls Functions via OCI's internal fabric, not through this subnet route.
 
 resource "oci_core_route_table" "private" {
@@ -58,11 +71,17 @@ resource "oci_core_route_table" "private" {
     destination_type  = "SERVICE_CIDR_BLOCK"
     network_entity_id = oci_core_service_gateway.this.id
   }
+
+  route_rules {
+    destination       = "0.0.0.0/0"
+    destination_type  = "CIDR_BLOCK"
+    network_entity_id = oci_core_nat_gateway.this.id
+  }
 }
 
 # ── Security list for private subnet ─────────────────────────────────────────
-# Allows egress to Oracle services only; no inbound rules (Functions are invoked
-# by API Gateway via OCI's internal fabric, not via this security list).
+# Allows egress to Oracle services and to the job store on the ARM VM's public IP.
+# No inbound rules (Functions are invoked by API Gateway via OCI's internal fabric).
 
 resource "oci_core_security_list" "private" {
   compartment_id = var.compartment_ocid
@@ -78,8 +97,8 @@ resource "oci_core_security_list" "private" {
   }
 
   egress_security_rules {
-    description      = "Allow egress to job store on ARM VM"
-    destination      = "10.0.0.248/32"
+    description      = "Allow egress to job store on ARM VM public IP"
+    destination      = "64.181.220.163/32"
     destination_type = "CIDR_BLOCK"
     protocol         = "6" # TCP
     stateless        = false
