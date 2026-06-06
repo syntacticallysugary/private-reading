@@ -40,8 +40,9 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
             set -e
-            if [ ! -d /opt/jobstore/venv ]; then
-              sudo apt-get install -y python3-venv python3-pip -qq
+            sudo apt-get install -y python3-venv -qq 2>/dev/null
+            if [ ! -f /opt/jobstore/venv/bin/pip ]; then
+              rm -rf /opt/jobstore/venv
               python3 -m venv /opt/jobstore/venv
             fi
             /opt/jobstore/venv/bin/pip install -q -r /opt/jobstore/requirements.txt
