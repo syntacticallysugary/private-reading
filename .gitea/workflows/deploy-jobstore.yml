@@ -48,6 +48,19 @@ jobs:
             /opt/jobstore/venv/bin/pip install -q -r /opt/jobstore/requirements.txt
           "
 
+      - name: Open firewall for Functions subnet
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
+            set -e
+            sudo iptables -C INPUT -p tcp -s 10.0.1.0/24 --dport 8000 -j ACCEPT 2>/dev/null || {
+              REJECT_LINE=\$(sudo iptables -L INPUT --line-numbers -n | awk '/REJECT/{print \$1}' | head -1)
+              sudo iptables -I INPUT \"\$REJECT_LINE\" -p tcp -s 10.0.1.0/24 --dport 8000 -j ACCEPT
+            }
+            sudo mkdir -p /etc/iptables
+            sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq netfilter-persistent 2>/dev/null || true
+          "
+
       - name: Install and restart systemd service
         run: |
           ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "

@@ -84,6 +84,9 @@ def _job_store(method: str, path: str, body: dict | None = None) -> tuple[dict, 
             return json.loads(exc.read()), exc.code
         except Exception:
             return {"error": str(exc)}, exc.code
+    except urllib.error.URLError as exc:
+        logger.error("job store unreachable: %s", exc)
+        return {"error": "job store unavailable"}, 503
 
 
 # Cognito RSA public keys — embedded to avoid outbound network calls from the

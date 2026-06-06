@@ -76,6 +76,18 @@ resource "oci_core_security_list" "private" {
     protocol         = "6" # TCP
     stateless        = false
   }
+
+  egress_security_rules {
+    description      = "Allow egress to job store on ARM VM"
+    destination      = "10.0.0.248/32"
+    destination_type = "CIDR_BLOCK"
+    protocol         = "6" # TCP
+    stateless        = false
+    tcp_options {
+      min = 8000
+      max = 8000
+    }
+  }
 }
 
 # ── Private subnet ────────────────────────────────────────────────────────────

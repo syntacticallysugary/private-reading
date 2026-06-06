@@ -128,6 +128,18 @@ resource "oci_core_security_list" "public" {
     }
   }
 
+  ingress_security_rules {
+    description = "Allow job store access from Functions subnet"
+    source      = "10.0.1.0/24"
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    stateless   = false
+    tcp_options {
+      min = 8000
+      max = 8000
+    }
+  }
+
   egress_security_rules {
     description      = "Allow all outbound traffic"
     destination      = "0.0.0.0/0"
