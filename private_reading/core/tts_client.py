@@ -120,6 +120,8 @@ class TTSClient:
                 "model": self.model,
                 "response_format": "wav",
                 "temperature": self.temperature,
+                "language": "English",
+                "seed": 42,
             }
             if self.voice:
                 payload["voice"] = self.voice
