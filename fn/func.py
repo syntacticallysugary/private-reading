@@ -242,7 +242,9 @@ def _route(method: str, path: str, headers: dict, body: dict):  # noqa: C901
         if not text:
             return _err("text is required")
         job_id = uuid.uuid4().hex[:24]
-        _job_store("POST", "/jobs", {"user_id": uid, "job_id": job_id, "text": text})
+        _, st = _job_store("POST", "/jobs", {"user_id": uid, "job_id": job_id, "text": text})
+        if st not in (200, 201):
+            return _err("Job store unavailable — please retry", 503)
         _notify_worker()
         return _json({"job_id": job_id, "status": "pending"}, 201)
 
