@@ -40,11 +40,11 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
             set -e
-            cd /opt/jobstore
-            if [ ! -d venv ]; then
-              python3 -m venv venv
+            if [ ! -d /opt/jobstore/venv ]; then
+              sudo apt-get install -y python3-venv python3-pip -qq
+              python3 -m venv /opt/jobstore/venv
             fi
-            venv/bin/pip install -q -r requirements.txt
+            /opt/jobstore/venv/bin/pip install -q -r /opt/jobstore/requirements.txt
           "
 
       - name: Install and restart systemd service
