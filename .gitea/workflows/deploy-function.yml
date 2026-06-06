@@ -23,6 +23,7 @@ jobs:
 
       - name: Install OCI CLI
         run: |
+          export PATH="$HOME/bin:$PATH"
           if ! command -v oci &>/dev/null; then
             curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
             chmod +x install.sh
