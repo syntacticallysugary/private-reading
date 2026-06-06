@@ -3,8 +3,9 @@ locals {
   table_name = replace("${var.app_name}_${var.environment}_jobs", "-", "_")
 }
 
-# ── OCI NoSQL Database (Always Free tier) ────────────────────────────────────
-# Always Free: 3 tables, 25 read units, 25 write units, 5 GB each.
+# ── OCI NoSQL Database ────────────────────────────────────────────────────────
+# Provisioned capacity: 25 read units, 25 write units, 5 GB.
+# is_auto_reclaimable=false — always-free NoSQL not available in us-chicago-1.
 # Resource principal auth from Functions — no credentials or wallet needed.
 
 resource "oci_nosql_table" "this" {
