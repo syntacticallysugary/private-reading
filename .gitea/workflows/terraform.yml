@@ -23,11 +23,44 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        env:
+          TF_VAR_oci_tenancy_ocid: ${{ secrets.TF_VAR_oci_tenancy_ocid }}
+          TF_VAR_oci_user_ocid: ${{ secrets.TF_VAR_oci_user_ocid }}
+          TF_VAR_oci_fingerprint: ${{ secrets.TF_VAR_oci_fingerprint }}
+          TF_VAR_oci_private_key: ${{ secrets.TF_VAR_oci_private_key }}
+          TF_VAR_oci_region: ${{ secrets.TF_VAR_oci_region }}
+          TF_VAR_oci_compartment_ocid: ${{ secrets.TF_VAR_oci_compartment_ocid }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+          TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_cognito_user_pool_id }}
+          TF_VAR_function_image: ${{ secrets.TF_VAR_function_image }}
+          TF_VAR_worker_api_key: ${{ secrets.TF_VAR_worker_api_key }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color
+        env:
+          TF_VAR_oci_tenancy_ocid: ${{ secrets.TF_VAR_oci_tenancy_ocid }}
+          TF_VAR_oci_user_ocid: ${{ secrets.TF_VAR_oci_user_ocid }}
+          TF_VAR_oci_fingerprint: ${{ secrets.TF_VAR_oci_fingerprint }}
+          TF_VAR_oci_private_key: ${{ secrets.TF_VAR_oci_private_key }}
+          TF_VAR_oci_region: ${{ secrets.TF_VAR_oci_region }}
+          TF_VAR_oci_compartment_ocid: ${{ secrets.TF_VAR_oci_compartment_ocid }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+          TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_cognito_user_pool_id }}
+          TF_VAR_function_image: ${{ secrets.TF_VAR_function_image }}
+          TF_VAR_worker_api_key: ${{ secrets.TF_VAR_worker_api_key }}
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
+        env:
+          TF_VAR_oci_tenancy_ocid: ${{ secrets.TF_VAR_oci_tenancy_ocid }}
+          TF_VAR_oci_user_ocid: ${{ secrets.TF_VAR_oci_user_ocid }}
+          TF_VAR_oci_fingerprint: ${{ secrets.TF_VAR_oci_fingerprint }}
+          TF_VAR_oci_private_key: ${{ secrets.TF_VAR_oci_private_key }}
+          TF_VAR_oci_region: ${{ secrets.TF_VAR_oci_region }}
+          TF_VAR_oci_compartment_ocid: ${{ secrets.TF_VAR_oci_compartment_ocid }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+          TF_VAR_cognito_user_pool_id: ${{ secrets.TF_VAR_cognito_user_pool_id }}
+          TF_VAR_function_image: ${{ secrets.TF_VAR_function_image }}
+          TF_VAR_worker_api_key: ${{ secrets.TF_VAR_worker_api_key }}
