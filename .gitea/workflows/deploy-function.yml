@@ -31,13 +31,6 @@ jobs:
           fi
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
-      - name: Configure OCI CLI
-        run: |
-          mkdir -p ~/.oci
-          echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
-          echo "${{ secrets.OCI_KEY }}" > ~/.oci/key.pem
-          chmod 600 ~/.oci/config ~/.oci/key.pem
-
       - name: Update OCI Function Image
         run: |
           oci fn function update \
