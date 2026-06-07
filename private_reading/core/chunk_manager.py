@@ -134,6 +134,10 @@ class ChunkManager:
         """Remove PDF artifacts that produce garbled TTS output."""
         # Inline citation brackets: [1], [1, 2], [1–3]
         text = re.sub(r"\s*\[\s*\d+(?:\s*[,–\-]\s*\d+)*\s*\]", "", text)
+        # Equation numbers: trailing (1), (2), (12) on a line — PDF math artifact
+        text = re.sub(r"\s*\(\s*\d{1,3}\s*\)\s*$", "", text, flags=re.MULTILINE)
+        # Isolated superscript digits on their own line (e.g. I²R split as "I\n2\nR")
+        text = re.sub(r"(?m)^(\d{1})\s*$", "", text)
         # arXiv / DOI identifiers and general URLs
         text = re.sub(r"\barXiv:\S+", "", text, flags=re.IGNORECASE)
         text = re.sub(r"\bdoi:\S+", "", text, flags=re.IGNORECASE)
