@@ -131,7 +131,36 @@ class ChunkManager:
 
     @staticmethod
     def _clean(text: str) -> str:
-        """Remove PDF artifacts that produce garbled TTS output."""
+        """Remove PDF artifacts and Project Gutenberg boilerplate."""
+        # Project Gutenberg: drop everything up to and including the START marker
+        start_match = re.search(
+            r"^\*\*\*\s*START OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\*",
+            text,
+            re.IGNORECASE | re.MULTILINE,
+        )
+        if start_match:
+            text = text[start_match.end() :]
+        # Project Gutenberg: drop END marker and everything after
+        text = re.sub(
+            r"\*\*\*\s*END OF THE PROJECT GUTENBERG EBOOK.*",
+            "",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        # Remaining *** section breaks → paragraph break
+        text = re.sub(r"\*{3,}", "\n\n", text)
+        # Gutenberg eBook references: [eBook #12345]
+        text = re.sub(r"\[\s*eBook\s*#\d+\s*\]", "", text, flags=re.IGNORECASE)
+        # Gutenberg header metadata lines (Release date, Language, Credits, etc.)
+        text = re.sub(
+            r"^(Release date|Language|Original publication|Other information"
+            r"|Credits?|Produced by|Transcribed by|Updated editions):[^\n]*$",
+            "",
+            text,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+        # Tab-indented lines (Gutenberg italics / synopsis blocks) — strip leading tabs
+        text = re.sub(r"^\t+", "", text, flags=re.MULTILINE)
         # Inline citation brackets: [1], [1, 2], [1–3]
         text = re.sub(r"\s*\[\s*\d+(?:\s*[,–\-]\s*\d+)*\s*\]", "", text)
         # Equation numbers: trailing (1), (2), (12) on a line — PDF math artifact
