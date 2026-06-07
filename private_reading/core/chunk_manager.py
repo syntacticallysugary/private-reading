@@ -51,6 +51,84 @@ class ChunkManager:
         self.max_chars = max_chars
         self.overlap_ratio = overlap_ratio
 
+    # Symbols that TTS models choke on, mapped to spoken equivalents or dropped.
+    _SYMBOL_MAP: dict[str, str] = {
+        # Math comparison
+        "≈": "approximately",
+        "≠": "not equal to",
+        "≤": "or less",
+        "≥": "or more",
+        "∞": "infinity",
+        # Math operators
+        "×": "times",
+        "÷": "divided by",
+        "±": "plus or minus",
+        "−": "-",  # Unicode minus → ASCII hyphen
+        "√": "square root of",
+        # Arrows
+        "→": "to",
+        "←": "from",
+        "↑": "up",
+        "↓": "down",
+        "⇒": "implies",
+        "⇐": "if",
+        # Greek letters common in technical text
+        "α": "alpha",
+        "β": "beta",
+        "γ": "gamma",
+        "δ": "delta",
+        "ε": "epsilon",
+        "λ": "lambda",
+        "μ": "mu",
+        "π": "pi",
+        "σ": "sigma",
+        "τ": "tau",
+        "φ": "phi",
+        "ω": "omega",
+        "Δ": "delta",
+        "Σ": "sum",
+        "Ω": "ohm",
+        # Units / typography
+        "°": " degrees",
+        "℃": " degrees Celsius",
+        "℉": " degrees Fahrenheit",
+        "…": "...",
+        "—": ", ",
+        "–": ", ",
+        # Smart quotes → ASCII
+        "“": '"',
+        "”": '"',
+        "‘": "'",
+        "’": "'",
+        # Currency
+        "€": "euros",
+        "£": "pounds",
+        "¥": "yen",
+        # Common fractions
+        "½": "one half",
+        "⅓": "one third",
+        "¼": "one quarter",
+        "¾": "three quarters",
+        # Misc
+        "•": "-",
+        "·": " ",
+        " ": " ",  # non-breaking space
+        "­": "",  # soft hyphen
+        "™": "",
+        "©": "",
+        "®": "",
+    }
+
+    @staticmethod
+    def _normalize(text: str) -> str:
+        """Replace symbols that TTS models can't pronounce with spoken equivalents."""
+        for symbol, replacement in ChunkManager._SYMBOL_MAP.items():
+            if symbol in text:
+                text = text.replace(symbol, replacement)
+        # Collapse any double-spaces introduced by replacements
+        text = re.sub(r" {2,}", " ", text)
+        return text
+
     @staticmethod
     def _clean(text: str) -> str:
         """Remove PDF artifacts that produce garbled TTS output."""
@@ -92,6 +170,7 @@ class ChunkManager:
         text = "\n".join(cleaned_lines)
         # Collapse runs of whitespace left behind
         text = re.sub(r"[ \t]{2,}", " ", text)
+        text = ChunkManager._normalize(text)
         return text.strip()
 
     async def chunk(self, text: str) -> List[str]:
