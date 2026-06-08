@@ -32,6 +32,47 @@
       </div>
 
       <button class="btn btn-primary" id="login-btn" onclick="login()">Sign In</button>
+      <p class="auth-switch">Don't have an account? <a href="#" onclick="showSignup(); return false;">Sign up</a></p>
+    </div>
+
+    <!-- Sign Up Section -->
+    <div id="signup-section" style="display:none;">
+      <h2 class="card-title">Create account</h2>
+      <p class="card-subtitle">Sign up to start converting text to audio.</p>
+
+      <div id="signup-error" class="error-box" style="display:none;"></div>
+
+      <div class="field">
+        <label for="signup-email">Email address</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="signup-confirm">Confirm password</label>
+        <input type="password" id="signup-confirm" placeholder="Repeat your password" autocomplete="new-password">
+      </div>
+
+      <button class="btn btn-primary" id="signup-btn" onclick="signUp()">Create Account</button>
+      <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin(); return false;">Sign in</a></p>
+    </div>
+
+    <!-- Confirm Section -->
+    <div id="confirm-section" style="display:none;">
+      <h2 class="card-title">Check your email</h2>
+      <p class="card-subtitle">We sent a verification code to <strong id="confirm-email-display"></strong>.</p>
+
+      <div id="confirm-error" class="error-box" style="display:none;"></div>
+
+      <div class="field">
+        <label for="confirm-code">Verification code</label>
+        <input type="text" id="confirm-code" placeholder="6-digit code" autocomplete="one-time-code" inputmode="numeric">
+      </div>
+
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmSignUp()">Verify</button>
+      <p class="auth-switch"><a href="#" onclick="showLogin(); return false;">Back to sign in</a></p>
     </div>
 
     <!-- App Section (Authenticated) -->

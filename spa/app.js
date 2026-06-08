@@ -95,6 +95,146 @@ function logout() {
   window.location.reload();
 }
 
+// ── View switching ────────────────────────────────────────────────────────────
+
+function showLogin() {
+  document.getElementById('login-section').style.display = '';
+  document.getElementById('signup-section').style.display = 'none';
+  document.getElementById('confirm-section').style.display = 'none';
+}
+
+function showSignup() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('signup-section').style.display = '';
+  document.getElementById('confirm-section').style.display = 'none';
+}
+
+function showConfirm(email) {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('signup-section').style.display = 'none';
+  document.getElementById('confirm-section').style.display = '';
+  document.getElementById('confirm-email-display').textContent = email;
+}
+
+// ── Sign Up ───────────────────────────────────────────────────────────────────
+
+async function signUp() {
+  const email    = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const confirm  = document.getElementById('signup-confirm').value;
+  const errEl    = document.getElementById('signup-error');
+  const btn      = document.getElementById('signup-btn');
+
+  errEl.style.display = 'none';
+
+  if (!email || !password) {
+    errEl.textContent = 'Please fill in all fields.';
+    errEl.style.display = '';
+    return;
+  }
+  if (password !== confirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = '';
+    return;
+  }
+  if (password.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = '';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+
+  try {
+    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.SignUp',
+        'Content-Type': 'application/x-amz-json-1.1',
+      },
+      body: JSON.stringify({
+        ClientId: CONFIG.COGNITO_CLIENT_ID,
+        Username: email,
+        Password: password,
+        UserAttributes: [{ Name: 'email', Value: email }],
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || data.__type) {
+      errEl.textContent = data.message || data.__type || 'Sign-up failed.';
+      errEl.style.display = '';
+      return;
+    }
+
+    showConfirm(email);
+  } catch (e) {
+    errEl.textContent = 'Network error — please try again.';
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+
+// ── Confirm Sign Up ───────────────────────────────────────────────────────────
+
+async function confirmSignUp() {
+  const email  = document.getElementById('confirm-email-display').textContent;
+  const code   = document.getElementById('confirm-code').value.trim();
+  const errEl  = document.getElementById('confirm-error');
+  const btn    = document.getElementById('confirm-btn');
+
+  errEl.style.display = 'none';
+
+  if (!code) {
+    errEl.textContent = 'Please enter the verification code.';
+    errEl.style.display = '';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+
+  try {
+    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.ConfirmSignUp',
+        'Content-Type': 'application/x-amz-json-1.1',
+      },
+      body: JSON.stringify({
+        ClientId: CONFIG.COGNITO_CLIENT_ID,
+        Username: email,
+        ConfirmationCode: code,
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || data.__type) {
+      errEl.textContent = data.message || data.__type || 'Verification failed.';
+      errEl.style.display = '';
+      return;
+    }
+
+    showLogin();
+    const loginErr = document.getElementById('login-error');
+    loginErr.textContent = 'Account verified — please sign in.';
+    loginErr.style.display = '';
+    loginErr.style.color = 'var(--success, green)';
+    document.getElementById('login-email').value = email;
+  } catch (e) {
+    errEl.textContent = 'Network error — please try again.';
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verify';
+  }
+}
+
 function getAuthHeader() {
   const token = localStorage.getItem('id_token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
