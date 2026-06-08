@@ -35,7 +35,7 @@ module "cognito" {
 
   user_pool_id  = var.cognito_user_pool_id
   app_name      = var.app_name
-  spa_origin    = module.storage.web_bucket_url
+  spa_origin    = "https://reading.syntacticallysugary.dev"
   aws_region    = var.aws_region
   domain_prefix = var.cognito_domain_prefix
 }
@@ -167,7 +167,7 @@ module "api" {
   environment       = var.environment
   subnet_id         = oci_core_subnet.public.id
   function_id       = module.functions.function_id
-  spa_origin        = module.storage.web_bucket_url
+  spa_origin        = "https://reading.syntacticallysugary.dev"
   cognito_issuer    = module.cognito.issuer
   cognito_jwks_uri  = module.cognito.jwks_uri
   cognito_client_id = module.cognito.client_id

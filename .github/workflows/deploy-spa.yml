@@ -5,6 +5,8 @@ on:
     paths:
       - 'spa/**'
 
+permissions: {}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
