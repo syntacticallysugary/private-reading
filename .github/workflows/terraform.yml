@@ -33,6 +33,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure OCI credentials
+        run: |
+          mkdir -p ~/.oci
+          printf '[DEFAULT]\nuser=%s\nfingerprint=%s\nkey_file=%s/.oci/key.pem\ntenancy=%s\nregion=%s\n' \
+            "$TF_VAR_oci_user_ocid" \
+            "$TF_VAR_oci_fingerprint" \
+            "$HOME" \
+            "$TF_VAR_oci_tenancy_ocid" \
+            "$TF_VAR_oci_region" > ~/.oci/config
+          printf '%s\n' "$TF_VAR_oci_private_key" > ~/.oci/key.pem
+          chmod 600 ~/.oci/config ~/.oci/key.pem
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
