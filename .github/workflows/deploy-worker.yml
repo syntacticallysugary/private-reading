@@ -45,7 +45,7 @@ jobs:
             --from-literal=TTS_TIMEOUT_SECONDS="1800" \
             --from-literal=TTS_RETRY_ATTEMPTS="2" \
             --from-literal=SEMAPHORE_SIZE="1" \
-            --from-literal=PROCESSING_CHUNK_SIZE="5000" \
+            --from-literal=PROCESSING_CHUNK_SIZE="500" \
             --from-literal=WEBHOOK_PORT="8765" \
             -n private-reading --dry-run=client -o yaml | kubectl apply -f -
 
