@@ -12,8 +12,8 @@ from typing import List
 
 from private_reading.exceptions import PrivateReadingError
 
-# Global constant for chunk size configuration - easy to adjust
-MAX_CHUNK = 800
+# Maximum characters before a single paragraph is split at sentence boundaries.
+MAX_CHUNK = 500
 
 
 @dataclass
@@ -229,31 +229,14 @@ class ChunkManager:
             import semchunk
 
             chunks = []
-            current_parts: list[str] = []
-            current_len = 0
-
             for para in paragraphs:
                 if len(para) > self.max_chars:
-                    if current_parts:
-                        chunks.append("\n\n".join(current_parts))
-                        current_parts = []
-                        current_len = 0
                     sub: list[str] = semchunk.chunk(  # type: ignore[assignment]
                         para, self.max_chars, len
                     )
                     chunks.extend(c.strip() for c in sub if c.strip())
                 else:
-                    added_len = len(para) + (2 if current_parts else 0)
-                    if current_len + added_len <= self.max_chars:
-                        current_parts.append(para)
-                        current_len += added_len
-                    else:
-                        chunks.append("\n\n".join(current_parts))
-                        current_parts = [para]
-                        current_len = len(para)
-
-            if current_parts:
-                chunks.append("\n\n".join(current_parts))
+                    chunks.append(para)
 
         except ImportError:
             chunks = list(paragraphs)
