@@ -172,4 +172,3 @@ module "api" {
   cognito_jwks_uri  = module.cognito.jwks_uri
   cognito_client_id = module.cognito.client_id
 }
-# Mon 08 Jun 2026 10:05:18 AM CDT
