@@ -16,13 +16,6 @@ spec:
       hostNetwork: true   # required: worker reaches LAN TTS server by host IP
       dnsPolicy: Default
       automountServiceAccountToken: false
-      nodeSelector:
-        kubernetes.io/hostname: r5
-      tolerations:
-      - key: "role"
-        operator: "Equal"
-        value: "workstation"
-        effect: "NoSchedule"
       securityContext:
         seccompProfile:
           type: RuntimeDefault
