@@ -38,6 +38,8 @@ jobs:
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
           TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
           TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
@@ -55,6 +57,8 @@ jobs:
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
           TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
           TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -72,3 +76,5 @@ jobs:
           TF_VAR_worker_api_key: ${{ secrets.TF_VAR_WORKER_API_KEY }}
           TF_VAR_job_store_url: ${{ secrets.TF_VAR_JOB_STORE_URL }}
           TF_VAR_job_store_api_key: ${{ secrets.TF_VAR_JOB_STORE_API_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
