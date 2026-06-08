@@ -18,6 +18,14 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 64.181.220.163 >> ~/.ssh/known_hosts
 
+      - name: Inject config
+        run: |
+          sed -i \
+            -e "s|<YOUR_OCI_API_GATEWAY_URL>|${{ secrets.API_BASE_URL }}|g" \
+            -e "s|<YOUR_COGNITO_APP_CLIENT_ID>|${{ secrets.COGNITO_CLIENT_ID }}|g" \
+            -e "s|<YOUR_AWS_REGION>|us-east-1|g" \
+            spa/app.js
+
       - name: Deploy SPA
         run: |
           rsync -az --delete \
