@@ -37,6 +37,12 @@ test_results*.txt
 *.mp3
 *.ogg
 *.flac
+*.pdf
+
+# Dev artifacts
+output/
+SUMMARY.md
+plans/
 
 # Tool configs
 .antigravitycli/

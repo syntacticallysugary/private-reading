@@ -103,6 +103,26 @@ The OCI Function runs in a private subnet with no NAT gateway. Cognito's public 
 
 ---
 
+## Known Shortcomings
+
+The current pipeline accepts pasted plain text. Scientific and technical documents copied from PDFs contain structures that degrade or break TTS output:
+
+**Two-column layout bleed** — PDF extractors read columns linearly, interleaving half-sentences from the left and right columns. No amount of text cleanup can fix this; it requires layout-aware PDF parsing.
+
+**Tables** — Copied table rows arrive as whitespace-separated strings with no spoken structure. The TTS reads them as a run of numbers and abbreviations with no context. Statistical notation (`t(49.1) = 0.022, p = 0.983`) and column headers embedded mid-text compound the problem.
+
+**Equations** — Inline math gets split across lines by the PDF extractor (e.g., `I²R` becomes `I`, newline, `2`, newline, `R`). Equation numbers `(1)` are read aloud. `ChunkManager._clean()` and `_normalize()` handle the most common cases but cannot reconstruct the semantic intent of complex expressions.
+
+**Running headers and footers** — Journal name, paper title, and author list repeat on every page and land mid-paragraph in the extracted text. The current footer heuristics catch common patterns but journal-specific formats vary.
+
+**Ligatures** — Typographic ligatures (`ﬁ`, `ﬂ`, `ﬃ`) may survive as single Unicode code points rather than letter pairs, causing mispronunciation or silent skips.
+
+**Reference lists** — Bibliographies are dense with author names, abbreviated journal titles, DOIs, and page ranges. They are rarely useful when read aloud and currently pass through to the TTS unchanged.
+
+**Intended fix (R2):** allow users to upload files directly (PDF, EPUB, DOCX, HTML) rather than pasting text. Layout-aware extraction libraries (`pymupdf`, `marker`, `ebooklib`) resolve the column, table, and equation problems at the source.
+
+---
+
 ## Deploying Your Own
 
 ### Prerequisites
