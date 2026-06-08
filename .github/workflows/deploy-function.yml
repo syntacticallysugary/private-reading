@@ -1,0 +1,55 @@
+name: Deploy Function
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'fn/**'
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login to OCIR
+        run: |
+          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "${{ secrets.OCI_NAMESPACE }}/${{ secrets.OCI_USER_NAME }}" --password-stdin
+
+      - name: Build and Push Image
+        run: |
+          docker build -t ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }} -f fn/Dockerfile fn/
+          docker tag ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }} ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:latest
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }}
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:latest
+
+      - name: Install OCI CLI
+        run: |
+          export PATH="$HOME/bin:$PATH"
+          if ! command -v oci &>/dev/null; then
+            curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+            chmod +x install.sh
+            ./install.sh --accept-all-defaults
+          fi
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Configure OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          printf '[DEFAULT]\nuser=%s\nfingerprint=%s\nkey_file=%s/.oci/key.pem\ntenancy=%s\nregion=%s\n' \
+            "$OCI_USER" "$OCI_FINGERPRINT" "$HOME" "$OCI_TENANCY" "$OCI_REGION" > ~/.oci/config
+          printf '%s\n' "$OCI_KEY" > ~/.oci/key.pem
+          chmod 600 ~/.oci/config ~/.oci/key.pem
+        env:
+          OCI_USER: ${{ secrets.TF_VAR_OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.TF_VAR_OCI_FINGERPRINT }}
+          OCI_TENANCY: ${{ secrets.TF_VAR_OCI_TENANCY_OCID }}
+          OCI_REGION: ${{ secrets.TF_VAR_OCI_REGION }}
+          OCI_KEY: ${{ secrets.TF_VAR_OCI_PRIVATE_KEY }}
+
+      - name: Update OCI Function Image
+        run: |
+          oci fn function update \
+            --function-id ${{ secrets.FUNCTION_OCID }} \
+            --image ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/api:${{ github.sha }}

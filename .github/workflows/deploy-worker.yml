@@ -1,0 +1,55 @@
+name: Deploy Worker
+on:
+  push:
+    paths:
+      - 'worker/**'
+      - 'private_reading/**'
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login to OCIR
+        run: |
+          echo "${{ secrets.OCIR_TOKEN }}" | docker login ord.ocir.io -u "${{ secrets.OCI_NAMESPACE }}/${{ secrets.OCI_USER_NAME }}" --password-stdin
+
+      - name: Build and Push Image
+        run: |
+          # Build from root to include private_reading
+          docker build -t ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -f worker/Dockerfile .
+          docker tag ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:latest
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }}
+          docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:latest
+
+      - name: Set Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Apply ConfigMap
+        run: |
+          kubectl create configmap private-reading-worker-config \
+            --from-literal=API_BASE_URL="${{ secrets.API_BASE_URL }}" \
+            --from-literal=AUDIOBOOKS_BUCKET="${{ secrets.AUDIOBOOKS_BUCKET }}" \
+            --from-literal=OCI_NAMESPACE="${{ secrets.OCI_NAMESPACE }}" \
+            --from-literal=OCI_REGION="us-chicago-1" \
+            --from-literal=TTS_ENDPOINT="${{ secrets.TTS_ENDPOINT }}" \
+            --from-literal=TTS_PROVIDER="qwen" \
+            --from-literal=TTS_MODEL="qwen3-tts-base" \
+            --from-literal=TTS_REFERENCE_ID="m-relaxed" \
+            --from-literal=TTS_TIMEOUT_SECONDS="1800" \
+            --from-literal=TTS_RETRY_ATTEMPTS="2" \
+            --from-literal=SEMAPHORE_SIZE="1" \
+            --from-literal=PROCESSING_CHUNK_SIZE="5000" \
+            --from-literal=WEBHOOK_PORT="8765" \
+            -n private-reading --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update K8s Deployment
+        run: |
+          kubectl set image deployment/private-reading-worker worker=ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -n private-reading
+          kubectl rollout status deployment/private-reading-worker -n private-reading

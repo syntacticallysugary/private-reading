@@ -1,0 +1,69 @@
+name: Security Scans
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # full history for trufflehog
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install scan tools
+        run: |
+          pip install bandit pip-audit checkov
+          echo "$(python -m site --user-base)/bin" >> "$GITHUB_PATH"
+          mkdir -p "$HOME/bin"
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b "$HOME/bin"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: TruffleHog — git history secrets scan
+        run: |
+          trufflehog git file://. --since-commit ${{ github.event.before || 'HEAD~1' }} \
+            --fail --no-update
+        continue-on-error: false
+
+      - name: Bandit — Python SAST
+        run: |
+          mkdir -p security-reports
+          bandit -r private_reading/ fn/ worker/ \
+            -ll -ii \
+            -f json -o security-reports/bandit-report.json \
+            || bandit -r private_reading/ fn/ worker/ -ll -ii -f screen
+        continue-on-error: false
+
+      - name: pip-audit — dependency CVE scan
+        run: |
+          pip-audit -r fn/requirements.txt -r worker/requirements.txt \
+            -f json -o security-reports/pip-audit-report.json
+        continue-on-error: false
+
+      - name: Checkov — IaC security scan
+        run: |
+          checkov -d terraform/ -d worker/k8s/ -d fn/ \
+            --config-file .checkov.yml \
+            --framework terraform kubernetes dockerfile \
+            --compact --quiet \
+            -o json > security-reports/checkov-report.json || \
+          checkov -d terraform/ -d worker/k8s/ -d fn/ \
+            --config-file .checkov.yml \
+            --framework terraform kubernetes dockerfile \
+            --compact --quiet
+        continue-on-error: false
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: security-reports/

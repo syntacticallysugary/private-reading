@@ -1,0 +1,80 @@
+name: Deploy Job Store
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'jobstore/**'
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ARM_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 64.181.220.163 >> ~/.ssh/known_hosts
+
+      - name: Create remote directories
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 \
+            "sudo mkdir -p /opt/jobstore /data && sudo chown ubuntu:ubuntu /opt/jobstore /data"
+
+      - name: Sync application files
+        run: |
+          rsync -az --delete \
+            --exclude=venv \
+            --exclude='.env' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            jobstore/ ubuntu@64.181.220.163:/opt/jobstore/
+
+      - name: Write env file
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 \
+            "printf 'JOB_STORE_TOKEN=%s\n' '${{ secrets.JOB_STORE_API_KEY }}' > /opt/jobstore/.env && chmod 600 /opt/jobstore/.env"
+
+      - name: Set up venv and install dependencies
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
+            set -e
+            sudo apt-get install -y python3-venv -qq 2>/dev/null
+            if [ ! -f /opt/jobstore/venv/bin/pip ]; then
+              rm -rf /opt/jobstore/venv
+              python3 -m venv /opt/jobstore/venv
+            fi
+            /opt/jobstore/venv/bin/pip install -q -r /opt/jobstore/requirements.txt
+          "
+
+      - name: Open firewall for Functions subnet
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
+            set -e
+            sudo iptables -C INPUT -p tcp --dport 8000 -j ACCEPT 2>/dev/null || {
+              REJECT_LINE=\$(sudo iptables -L INPUT --line-numbers -n | awk '/REJECT/{print \$1}' | head -1)
+              sudo iptables -I INPUT \"\$REJECT_LINE\" -p tcp --dport 8000 -j ACCEPT
+            }
+            sudo iptables -D INPUT -p tcp -s 10.0.1.0/24 --dport 8000 -j ACCEPT 2>/dev/null || true
+            sudo mkdir -p /etc/iptables
+            sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq netfilter-persistent 2>/dev/null || true
+          "
+
+      - name: Install and restart systemd service
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "
+            set -e
+            sudo cp /opt/jobstore/jobstore.service /etc/systemd/system/jobstore.service
+            sudo systemctl daemon-reload
+            sudo systemctl enable jobstore
+            sudo systemctl restart jobstore
+          "
+
+      - name: Verify service is running
+        run: |
+          sleep 3
+          ssh -i ~/.ssh/deploy_key ubuntu@64.181.220.163 "systemctl is-active jobstore"
