@@ -59,4 +59,4 @@ jobs:
       - name: Update K8s Deployment
         run: |
           kubectl set image deployment/private-reading-worker worker=ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }} -n private-reading
-          kubectl rollout status deployment/private-reading-worker -n private-reading
+          kubectl rollout status deployment/private-reading-worker -n private-reading --timeout=5m
