@@ -25,6 +25,13 @@ jobs:
           docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:${{ github.sha }}
           docker push ord.ocir.io/${{ secrets.OCI_NAMESPACE }}/private-reading/worker:latest
 
+      - name: Connect to Home VPN
+        run: |
+          sudo apt-get install -y wireguard-tools
+          echo "${{ secrets.WG_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+
       - name: Set Kubeconfig
         run: |
           mkdir -p ~/.kube
