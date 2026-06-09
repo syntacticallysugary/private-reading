@@ -1,6 +1,6 @@
 # Private Reading
 
-A hybrid cloud/on-premises audiobook service. Paste text in a web app, get an Opus audio file back. Built as a portfolio demonstration of cloud-native architecture with on-premises GPU inference.
+A hybrid cloud/on-premises audiobook service. Paste text in a web app, get an Opus audio file back. Built as a portfolio demonstration of cloud-native architecture with on-premises GPU inference.  This project works with Oracle Cloud Infrastructure (OCI), where the first project rolled out worked with Amazon Web Services (AWS).
 
 ---
 
@@ -41,7 +41,7 @@ The worker runs permanently in a home-lab k3s cluster. When a job is submitted, 
 | API | OCI API Gateway → OCI Functions (Python, fdk) |
 | Job store | OCI NoSQL (borneo SDK) |
 | Audio storage | OCI Object Storage (pre-signed URLs) |
-| TTS inference | Qwen3-TTS-12Hz-1.7B-Base via faster-qwen3-tts |
+| Text-To-Speech (TTS) inference | Qwen3-TTS-12Hz-1.7B-Base via faster-qwen3-tts |
 | Worker runtime | k3s (Kubernetes) on-premises, pulls image from OCIR |
 | Job delivery | WireGuard VPN (OCI → home lab) + aiohttp webhook receiver; polling fallback |
 | IaC | Terraform (VCN, Functions, NoSQL, API Gateway, Cognito app client) |
@@ -144,7 +144,7 @@ The current pipeline accepts pasted plain text. Scientific and technical documen
 2. **Configure the OCI Function**
    ```bash
    cp fn/.env.example .env   # or set TF_VAR_* in CI
-   # Deploy via Gitea Actions or manually:
+   # Deploy via Git Actions or manually:
    fn/deploy.sh
    ```
 
@@ -157,7 +157,7 @@ The current pipeline accepts pasted plain text. Scientific and technical documen
    See the [faster-qwen3-tts](https://github.com/andimarafioti/faster-qwen3-tts) project.
    The worker expects an OpenAI-compatible `/v1/audio/speech` endpoint.
 
-5. **Deploy the SPA**
+5. **Deploy the Single Page Application (SPA)**
    ```bash
    # Edit spa/app.js CONFIG with your API Gateway URL and Cognito client ID
    oci os object bulk-upload -bn <your-web-bucket> --src-dir spa/ --overwrite
@@ -169,7 +169,7 @@ The current pipeline accepts pasted plain text. Scientific and technical documen
 
 | Control | Implementation |
 |---------|---------------|
-| Authentication | AWS Cognito JWT, RS256, verified on every request |
+| Authentication | AWS Cognito JSON Web Token (JWT), RS256, verified on every request |
 | Transport | HTTPS enforced at API Gateway; OCI Object Storage TLS |
 | Input validation | Job text limited to 100,000 chars; IDs validated against `^[a-zA-Z0-9\-]{8,64}$` |
 | NoSQL injection | Input validated before string interpolation into NoSQL queries |
@@ -178,7 +178,7 @@ The current pipeline accepts pasted plain text. Scientific and technical documen
 | SAST | Bandit (Python), Checkov (Terraform + k8s + Dockerfile) on every commit |
 | Dependency audit | pip-audit on every commit |
 | Secrets scanning | TruffleHog git-history scan on every commit |
-| Pen test | OWASP ZAP baseline scan: 66 checks, 0 findings |
+| Pen test | Open Worldwide Application Security Project (OWASP) Zed Attack Proxy (ZAP) baseline scan: 66 checks, 0 findings |
 
 ---
 
