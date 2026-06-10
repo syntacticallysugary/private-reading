@@ -45,10 +45,9 @@ variable "cognito_user_pool_id" {
   description = "ID of the existing Cognito User Pool. Read-only — managed by Know-It-All CloudFormation."
 }
 
-variable "cognito_domain_prefix" {
+variable "cognito_client_id" {
   type        = string
-  description = "Globally unique domain prefix for the Cognito Hosted UI (e.g. private-reading-prod)."
-  default     = "private-reading-prod"
+  description = "Cognito app client ID for Private Reading. Output from the synsug shared-auth Terraform workspace."
 }
 
 # ── Application ───────────────────────────────────────────────────────────────

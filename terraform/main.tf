@@ -33,11 +33,8 @@ data "oci_objectstorage_namespace" "this" {
 module "cognito" {
   source = "./modules/cognito"
 
-  user_pool_id  = var.cognito_user_pool_id
-  app_name      = var.app_name
-  spa_origin    = "https://reading.syntacticallysugary.dev"
-  aws_region    = var.aws_region
-  domain_prefix = var.cognito_domain_prefix
+  user_pool_id = var.cognito_user_pool_id
+  aws_region   = var.aws_region
 }
 
 # ── Network (VCN + private subnet + service gateway) ─────────────────────────
@@ -83,7 +80,7 @@ module "functions" {
   namespace              = data.oci_objectstorage_namespace.this.namespace
   audiobooks_bucket_name = module.storage.audiobooks_bucket_name
   cognito_issuer         = module.cognito.issuer
-  cognito_client_id      = module.cognito.client_id
+  cognito_client_id      = var.cognito_client_id
 }
 
 # ── API Gateway ───────────────────────────────────────────────────────────────
@@ -170,5 +167,5 @@ module "api" {
   spa_origin        = "https://reading.syntacticallysugary.dev"
   cognito_issuer    = module.cognito.issuer
   cognito_jwks_uri  = module.cognito.jwks_uri
-  cognito_client_id = module.cognito.client_id
+  cognito_client_id = var.cognito_client_id
 }

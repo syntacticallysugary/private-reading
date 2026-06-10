@@ -3,87 +3,82 @@
 // Replace these values with your own deployment endpoints before deploying.
 const CONFIG = {
   API_BASE_URL: '<YOUR_OCI_API_GATEWAY_URL>/v1',
-  COGNITO_CLIENT_ID: '<YOUR_COGNITO_APP_CLIENT_ID>',
-  COGNITO_ENDPOINT: 'https://cognito-idp.<YOUR_AWS_REGION>.amazonaws.com/',
+  COGNITO_CLIENT_ID: '<READING_CLIENT_ID_FROM_SHARED_AUTH_TERRAFORM>',
+  AUTH_DOMAIN: 'https://auth.syntacticallysugary.dev',
+  REDIRECT_URI: 'https://reading.syntacticallysugary.dev/',
   MAX_CHARS: 100000,
 };
 
-// ── Auth Logic (native USER_PASSWORD_AUTH) ────────────────────────────────────
+// ── PKCE Utilities ─────────────────────────────────────────────────────────────
 
-async function login() {
-  const email    = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const errEl    = document.getElementById('login-error');
-  const btn      = document.getElementById('login-btn');
+function generateCodeVerifier() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
 
-  errEl.style.display = 'none';
-  if (!email || !password) {
-    errEl.textContent = 'Please enter your email and password.';
-    errEl.style.display = '';
-    return;
-  }
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
 
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
+// ── Auth Logic (OAuth 2.0 Authorization Code + PKCE) ─────────────────────────
 
-  try {
-    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
-        'Content-Type': 'application/x-amz-json-1.1',
-      },
-      body: JSON.stringify({
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        ClientId: CONFIG.COGNITO_CLIENT_ID,
-        AuthParameters: { USERNAME: email, PASSWORD: password },
-      }),
-    });
+async function redirectToLogin() {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  sessionStorage.setItem('pkce_verifier', verifier);
 
-    const data = await resp.json();
+  const params = new URLSearchParams({
+    client_id: CONFIG.COGNITO_CLIENT_ID,
+    response_type: 'code',
+    scope: 'openid email profile',
+    redirect_uri: CONFIG.REDIRECT_URI,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+  });
+  window.location.href = `${CONFIG.AUTH_DOMAIN}/oauth2/authorize?${params}`;
+}
 
-    if (!resp.ok || data.__type) {
-      const msg = data.message || data.__type || 'Sign-in failed.';
-      errEl.textContent = msg;
-      errEl.style.display = '';
-      return;
-    }
-
-    const result = data.AuthenticationResult;
-    localStorage.setItem('id_token', result.IdToken);
-    localStorage.setItem('access_token', result.AccessToken);
-    localStorage.setItem('refresh_token', result.RefreshToken);
-    initApp();
-  } catch (e) {
-    errEl.textContent = 'Network error — please try again.';
-    errEl.style.display = '';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-  }
+async function exchangeCodeForTokens(code, verifier) {
+  const params = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: CONFIG.COGNITO_CLIENT_ID,
+    code,
+    redirect_uri: CONFIG.REDIRECT_URI,
+    code_verifier: verifier,
+  });
+  const resp = await fetch(`${CONFIG.AUTH_DOMAIN}/oauth2/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params,
+  });
+  if (!resp.ok) throw new Error('Token exchange failed');
+  return resp.json();
 }
 
 async function refreshSession() {
   const refresh = localStorage.getItem('refresh_token');
   if (!refresh) return false;
   try {
-    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
-        'Content-Type': 'application/x-amz-json-1.1',
-      },
-      body: JSON.stringify({
-        AuthFlow: 'REFRESH_TOKEN_AUTH',
-        ClientId: CONFIG.COGNITO_CLIENT_ID,
-        AuthParameters: { REFRESH_TOKEN: refresh },
-      }),
+    const params = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: CONFIG.COGNITO_CLIENT_ID,
+      refresh_token: refresh,
     });
+    const resp = await fetch(`${CONFIG.AUTH_DOMAIN}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    });
+    if (!resp.ok) return false;
     const data = await resp.json();
-    if (!resp.ok || data.__type) return false;
-    const result = data.AuthenticationResult;
-    localStorage.setItem('id_token', result.IdToken);
-    localStorage.setItem('access_token', result.AccessToken);
+    localStorage.setItem('id_token', data.id_token);
+    localStorage.setItem('access_token', data.access_token);
+    if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
     return true;
   } catch (_) { return false; }
 }
@@ -92,190 +87,50 @@ function logout() {
   localStorage.removeItem('id_token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
-  window.location.reload();
-}
-
-// ── View switching ────────────────────────────────────────────────────────────
-
-function showLogin() {
-  document.getElementById('login-section').style.display = '';
-  document.getElementById('signup-section').style.display = 'none';
-  document.getElementById('confirm-section').style.display = 'none';
-}
-
-function showSignup() {
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('signup-section').style.display = '';
-  document.getElementById('confirm-section').style.display = 'none';
-}
-
-function showConfirm(email) {
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('signup-section').style.display = 'none';
-  document.getElementById('confirm-section').style.display = '';
-  document.getElementById('confirm-email-display').textContent = email;
-}
-
-// ── Sign Up ───────────────────────────────────────────────────────────────────
-
-async function signUp() {
-  const email    = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const confirm  = document.getElementById('signup-confirm').value;
-  const errEl    = document.getElementById('signup-error');
-  const btn      = document.getElementById('signup-btn');
-
-  errEl.style.display = 'none';
-
-  if (!email || !password) {
-    errEl.textContent = 'Please fill in all fields.';
-    errEl.style.display = '';
-    return;
-  }
-  if (password !== confirm) {
-    errEl.textContent = 'Passwords do not match.';
-    errEl.style.display = '';
-    return;
-  }
-  if (password.length < 8) {
-    errEl.textContent = 'Password must be at least 8 characters.';
-    errEl.style.display = '';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Creating account…';
-
-  try {
-    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'X-Amz-Target': 'AWSCognitoIdentityProviderService.SignUp',
-        'Content-Type': 'application/x-amz-json-1.1',
-      },
-      body: JSON.stringify({
-        ClientId: CONFIG.COGNITO_CLIENT_ID,
-        Username: email,
-        Password: password,
-        UserAttributes: [{ Name: 'email', Value: email }],
-      }),
-    });
-
-    const data = await resp.json();
-
-    if (!resp.ok || data.__type) {
-      errEl.textContent = data.message || data.__type || 'Sign-up failed.';
-      errEl.style.display = '';
-      return;
-    }
-
-    showConfirm(email);
-  } catch (e) {
-    errEl.textContent = 'Network error — please try again.';
-    errEl.style.display = '';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-  }
-}
-
-// ── Confirm Sign Up ───────────────────────────────────────────────────────────
-
-async function confirmSignUp() {
-  const email  = document.getElementById('confirm-email-display').textContent;
-  const code   = document.getElementById('confirm-code').value.trim();
-  const errEl  = document.getElementById('confirm-error');
-  const btn    = document.getElementById('confirm-btn');
-
-  errEl.style.display = 'none';
-
-  if (!code) {
-    errEl.textContent = 'Please enter the verification code.';
-    errEl.style.display = '';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
-
-  try {
-    const resp = await fetch(CONFIG.COGNITO_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'X-Amz-Target': 'AWSCognitoIdentityProviderService.ConfirmSignUp',
-        'Content-Type': 'application/x-amz-json-1.1',
-      },
-      body: JSON.stringify({
-        ClientId: CONFIG.COGNITO_CLIENT_ID,
-        Username: email,
-        ConfirmationCode: code,
-      }),
-    });
-
-    const data = await resp.json();
-
-    if (!resp.ok || data.__type) {
-      errEl.textContent = data.message || data.__type || 'Verification failed.';
-      errEl.style.display = '';
-      return;
-    }
-
-    showLogin();
-    const loginErr = document.getElementById('login-error');
-    loginErr.textContent = 'Account verified — please sign in.';
-    loginErr.style.display = '';
-    loginErr.style.color = 'var(--success, green)';
-    document.getElementById('login-email').value = email;
-  } catch (e) {
-    errEl.textContent = 'Network error — please try again.';
-    errEl.style.display = '';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Verify';
-  }
-}
-
-function getAuthHeader() {
-  const token = localStorage.getItem('id_token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-function isTokenExpired() {
-  const token = localStorage.getItem('id_token');
-  if (!token) return true;
-  try {
-    const { exp } = JSON.parse(atob(token.split('.')[1]));
-    return Date.now() / 1000 > exp - 60;
-  } catch (_) { return true; }
-}
-
-async function ensureFreshToken() {
-  if (isTokenExpired()) {
-    const ok = await refreshSession();
-    if (!ok) { logout(); return false; }
-  }
-  return true;
+  const params = new URLSearchParams({
+    client_id: CONFIG.COGNITO_CLIENT_ID,
+    logout_uri: CONFIG.REDIRECT_URI,
+  });
+  window.location.href = `${CONFIG.AUTH_DOMAIN}/logout?${params}`;
 }
 
 // ── App Logic ────────────────────────────────────────────────────────────────
 
 let _pollTimer = null;
 
-function initApp() {
-  // Wire Enter key on password field
-  const pwField = document.getElementById('login-password');
-  if (pwField) pwField.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+async function initApp() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+
+  if (code) {
+    const verifier = sessionStorage.getItem('pkce_verifier');
+    sessionStorage.removeItem('pkce_verifier');
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const tokens = await exchangeCodeForTokens(code, verifier);
+      localStorage.setItem('id_token', tokens.id_token);
+      localStorage.setItem('access_token', tokens.access_token);
+      if (tokens.refresh_token) localStorage.setItem('refresh_token', tokens.refresh_token);
+    } catch (_) {
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = 'Authentication failed — please try again.';
+      errEl.style.display = '';
+      return;
+    }
+  }
 
   const token = localStorage.getItem('id_token');
-  if (token) {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('app-section').style.display = 'block';
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      document.getElementById('username-display').textContent = payload.email || payload['cognito:username'] || 'User';
-    } catch (_) {}
-    checkCurrentJob();
+  if (!token) {
+    return;
   }
+
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('app-section').style.display = 'block';
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    document.getElementById('username-display').textContent = payload.email || payload['cognito:username'] || 'User';
+  } catch (_) {}
+  checkCurrentJob();
 }
 
 async function checkCurrentJob() {
@@ -409,6 +264,28 @@ async function downloadAudio() {
   }
 }
 
+function getAuthHeader() {
+  const token = localStorage.getItem('id_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+function isTokenExpired() {
+  const token = localStorage.getItem('id_token');
+  if (!token) return true;
+  try {
+    const { exp } = JSON.parse(atob(token.split('.')[1]));
+    return Date.now() / 1000 > exp - 60;
+  } catch (_) { return true; }
+}
+
+async function ensureFreshToken() {
+  if (isTokenExpired()) {
+    const ok = await refreshSession();
+    if (!ok) { logout(); return false; }
+  }
+  return true;
+}
+
 function showStatus(msg, jobId) {
   hide('input-section');
   hide('audio-section');
@@ -447,8 +324,6 @@ function resetUI() {
 
 function show(id) { document.getElementById(id).style.display = ''; }
 function hide(id) { document.getElementById(id).style.display = 'none'; }
-
-// ── Tabs ─────────────────────────────────────────────────────────────────────
 
 function showTab(name) {
   document.getElementById('tab-convert').style.display = '';
