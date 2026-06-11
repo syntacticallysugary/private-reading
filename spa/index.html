@@ -21,7 +21,13 @@
       <p class="card-subtitle">Sign in to access your private audiobooks.</p>
       <div id="login-error" class="error-box" style="display:none;"></div>
       <button class="btn btn-primary" id="login-btn" onclick="redirectToLogin()">Sign In</button>
-      <p class="auth-switch">New here? You can register from the sign-in page. Accounts are reviewed before access is granted.</p>
+      <p class="auth-switch">
+        <a href="https://auth.syntacticallysugary.dev/signup?client_id=3agsiu8iv0qrncs0q4o414q36h&response_type=code&scope=openid%20email%20profile&redirect_uri=https%3A%2F%2Freading.syntacticallysugary.dev%2F">Request access</a>
+        — accounts are reviewed before approval.
+      </p>
+      <p class="auth-switch">
+        <a href="https://auth.syntacticallysugary.dev/forgotPassword?client_id=3agsiu8iv0qrncs0q4o414q36h&response_type=code&scope=openid%20email%20profile&redirect_uri=https%3A%2F%2Freading.syntacticallysugary.dev%2F">Forgot your password?</a>
+      </p>
     </div>
 
     <!-- App Section (Authenticated) -->
