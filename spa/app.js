@@ -2,8 +2,8 @@
 
 // Replace these values with your own deployment endpoints before deploying.
 const CONFIG = {
-  API_BASE_URL: '<YOUR_OCI_API_GATEWAY_URL>/v1',
-  COGNITO_CLIENT_ID: '<READING_CLIENT_ID_FROM_SHARED_AUTH_TERRAFORM>',
+  API_BASE_URL: 'https://o35eybtgc6wg5jujhe5xeixioe.apigateway.us-chicago-1.oci.customer-oci.com/v1',
+  COGNITO_CLIENT_ID: '3agsiu8iv0qrncs0q4o414q36h',
   AUTH_DOMAIN: 'https://auth.syntacticallysugary.dev',
   REDIRECT_URI: 'https://reading.syntacticallysugary.dev/',
   MAX_CHARS: 100000,
