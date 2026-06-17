@@ -61,5 +61,7 @@ repos:
         name: pip-audit
         entry: pip-audit
         language: system
-        args: ["-r", "fn/requirements.txt", "-r", "worker/requirements.txt"]
+        args: ["-r", "fn/requirements.txt", "-r", "worker/requirements.txt",
+               "--ignore-vuln", "GHSA-537c-gmf6-5ccf"]
+        # GHSA-537c-gmf6-5ccf: cryptography<47 required by oci SDK — cannot upgrade
         pass_filenames: false
