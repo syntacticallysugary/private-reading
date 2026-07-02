@@ -67,7 +67,10 @@ module "functions" {
   compartment_ocid       = var.oci_compartment_ocid
   app_name               = var.app_name
   environment            = var.environment
-  subnet_id              = module.network.private_subnet_id
+  # Functions share the public subnet with API Gateway. The Internet Gateway
+  # provides free egress to the ARM VM job store, replacing the paid NAT gateway
+  # that was the sole reason for the private subnet's existence.
+  subnet_id              = oci_core_subnet.public.id
   image                  = var.function_image
   memory_mb              = var.function_memory_mb
   timeout_s              = var.function_timeout_s
@@ -122,18 +125,6 @@ resource "oci_core_security_list" "public" {
     tcp_options {
       min = 443
       max = 443
-    }
-  }
-
-  ingress_security_rules {
-    description = "Allow job store access from Functions subnet"
-    source      = "10.0.1.0/24"
-    source_type = "CIDR_BLOCK"
-    protocol    = "6"
-    stateless   = false
-    tcp_options {
-      min = 8000
-      max = 8000
     }
   }
 
